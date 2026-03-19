@@ -1,0 +1,45 @@
+//@version=6
+indicator("SCI Method — Structure & Sessions", overlay=true, max_labels_count=500)
+len        = input.int(10, "Pivot Lookback", minval=5, maxval=25)
+showLabels = input.bool(true, "Show HH/HL/LH/LL Labels")
+showSess   = input.bool(true, "Show Session Highlights")
+londonCol  = input.color(color.new(#2962FF, 88), "London Session Color")
+nyCol      = input.color(color.new(#FF6D00, 88), "New York Session Color")
+ph = ta.pivothigh(high, len, len)
+pl = ta.pivotlow(low, len, len)
+var float h1 = na
+var float h2 = na
+var float l1 = na
+var float l2 = na
+if not na(ph)
+    h2 := h1
+    h1 := ph
+if not na(pl)
+    l2 := l1
+    l1 := pl
+if not na(ph) and showLabels
+    lbl = not na(h2) ? (ph > h2 ? "HH" : "LH") : "SH"
+    col = lbl == "HH" ? color.lime : color.red
+    label.new(bar_index[len], ph, lbl, style=label.style_label_down, color=col, textcolor=color.black, size=size.normal)
+if not na(pl) and showLabels
+    lbl = not na(l2) ? (pl > l2 ? "HL" : "LL") : "SL"
+    col = lbl == "HL" ? color.lime : color.red
+    label.new(bar_index[len], pl, lbl, style=label.style_label_up, color=col, textcolor=color.black, size=size.normal)
+inLondon = not na(time(timeframe.period, "0200-0600", "America/New_York"))
+inNY     = not na(time(timeframe.period, "0830-1200", "America/New_York"))
+bgcolor(showSess and inLondon ? londonCol : na, title="London")
+bgcolor(showSess and inNY     ? nyCol     : na, title="New York")
+uptrend   = not na(h1) and not na(h2) and not na(l1) and not na(l2) and h1 > h2 and l1 > l2
+downtrend = not na(h1) and not na(h2) and not na(l1) and not na(l2) and h1 < h2 and l1 < l2
+var tbl = table.new(position.top_right, 2, 4, bgcolor=#0d1117, border_color=#30363d, border_width=1)
+biasText  = uptrend ? "▲  BULL / UPTREND" : downtrend ? "▼  BEAR / DOWNTREND" : "◆  RANGE / CONSOLIDATION"
+biasColor = uptrend ? color.lime : downtrend ? color.red : color.yellow
+biasNote  = uptrend ? "LONG BIAS ONLY" : downtrend ? "SHORT BIAS ONLY" : "STAY OUT"
+table.cell(tbl, 0, 0, "SCI BIAS", text_color=#8b949e, bgcolor=#161b22, text_size=size.small)
+table.cell(tbl, 1, 0, timeframe.period + " TF", text_color=#8b949e, bgcolor=#161b22, text_size=size.small)
+table.cell(tbl, 0, 1, biasText, text_color=biasColor, bgcolor=#0d1117, text_size=size.normal)
+table.cell(tbl, 1, 1, biasNote, text_color=biasColor, bgcolor=#0d1117, text_size=size.small)
+table.cell(tbl, 0, 2, "London", text_color=inLondon ? #2979ff : #484f58, bgcolor=#0d1117, text_size=size.small)
+table.cell(tbl, 1, 2, "New York", text_color=inNY ? #ff6d00 : #484f58, bgcolor=#0d1117, text_size=size.small)
+table.cell(tbl, 0, 3, not na(h1) ? "Last SH: " + str.tostring(h1, "#.##") : "Last SH: -", text_color=#484f58, bgcolor=#0d1117, text_size=size.tiny)
+table.cell(tbl, 1, 3, not na(l1) ? "Last SL: " + str.tostring(l1, "#.##") : "Last SL: -", text_color=#484f58, bgcolor=#0d1117, text_size=size.tiny)

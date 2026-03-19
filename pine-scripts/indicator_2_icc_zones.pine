@@ -1,0 +1,24 @@
+//@version=6
+indicator("SCI — ICC Phase Zones", overlay=true, max_boxes_count=100)
+showInd  = input.bool(true, "Show Indication Zone (GREEN)")
+showCorr = input.bool(true, "Show Correction Zone (ORANGE)")
+showCont = input.bool(true, "Show Continuation/Entry Zone (BLUE)")
+indHigh  = input.float(0.0, "Indication Zone — TOP price")
+indLow   = input.float(0.0, "Indication Zone — BOTTOM price")
+corrHigh = input.float(0.0, "Correction Zone — TOP price")
+corrLow  = input.float(0.0, "Correction Zone — BOTTOM price")
+contHigh = input.float(0.0, "Continuation Zone — TOP price")
+contLow  = input.float(0.0, "Continuation Zone — BOTTOM price")
+var box bInd  = na
+var box bCorr = na
+var box bCont = na
+if barstate.islast
+    if showInd and indHigh != 0.0 and indLow != 0.0
+        box.delete(bInd)
+        bInd := box.new(bar_index - 50, indHigh, bar_index + 20, indLow, border_color=color.lime, bgcolor=color.new(color.lime, 85), text="INDICATION (Breakout Level)", text_color=color.lime, text_size=size.small)
+    if showCorr and corrHigh != 0.0 and corrLow != 0.0
+        box.delete(bCorr)
+        bCorr := box.new(bar_index - 35, corrHigh, bar_index + 20, corrLow, border_color=color.orange, bgcolor=color.new(color.orange, 85), text="CORRECTION (Wait Here)", text_color=color.orange, text_size=size.small)
+    if showCont and contHigh != 0.0 and contLow != 0.0
+        box.delete(bCont)
+        bCont := box.new(bar_index - 20, contHigh, bar_index + 20, contLow, border_color=#2979ff, bgcolor=color.new(#2979ff, 85), text="CONTINUATION (Entry Zone)", text_color=#2979ff, text_size=size.small)
