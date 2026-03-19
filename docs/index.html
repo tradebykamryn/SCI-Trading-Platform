@@ -1,0 +1,3465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCI Trading Command Center</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   GLOBAL STYLES & VARIABLES
+   ═══════════════════════════════════════════ */
+:root {
+  --bg: #090b10;
+  --card: #111318;
+  --border: #1e2330;
+  --amber: #d4a017;
+  --green: #22c55e;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --blue: #3b82f6;
+  --purple: #a78bfa;
+  --teal: #2dd4bf;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --sidebar-collapsed: 56px;
+  --sidebar-expanded: 220px;
+  --transition: 0.15s ease;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+input, textarea, select, button { font-family: inherit; }
+input[type="number"]::-webkit-inner-spin-button { opacity:1; }
+
+/* ═══════════════════════════════════════════
+   SIDEBAR NAVIGATION
+   ═══════════════════════════════════════════ */
+#sidebar {
+  position: fixed; left:0; top:0; bottom:0;
+  width: var(--sidebar-collapsed);
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  z-index: 1000;
+  transition: width var(--transition);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+#sidebar.expanded { width: var(--sidebar-expanded); }
+#sidebar-toggle {
+  width:100%; height:44px; background:none; border:none; border-bottom:1px solid var(--border);
+  color: var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:18px; transition: all var(--transition);
+}
+#sidebar-toggle:hover { color:var(--amber); background:rgba(212,160,23,0.08); }
+.nav-items { flex:1; display:flex; flex-direction:column; padding:4px 0; overflow-y:auto; }
+.nav-item {
+  display:flex; align-items:center; gap:12px; padding:12px 16px;
+  cursor:pointer; color:var(--text-dim); transition:all var(--transition);
+  white-space:nowrap; text-decoration:none; border:none; background:none;
+  font-size:14px; width:100%; text-align:left;
+}
+.nav-item:hover { color:var(--text); background:rgba(255,255,255,0.04); }
+/* FIX 5F: amber glow on active nav item */
+.nav-item.active { color:var(--amber); background:rgba(212,160,23,0.1); border-right:2px solid var(--amber); box-shadow:inset 0 0 12px rgba(212,160,23,0.15); }
+.nav-icon { font-size:20px; min-width:24px; text-align:center; }
+.nav-label { opacity:0; transition:opacity var(--transition); }
+#sidebar.expanded .nav-label { opacity:1; }
+
+/* ═══════════════════════════════════════════
+   MAIN CONTENT AREA
+   ═══════════════════════════════════════════ */
+#main {
+  margin-left: var(--sidebar-collapsed);
+  padding: 20px;
+  transition: margin-left var(--transition);
+  min-height: 100vh;
+}
+#sidebar.expanded ~ #main { margin-left: var(--sidebar-expanded); }
+.page { display:none; }
+.page.active { display:block; }
+
+/* ═══════════════════════════════════════════
+   MOBILE BOTTOM TAB BAR
+   ═══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  #sidebar { display:none !important; }
+  #main { margin-left:0 !important; padding:12px 12px 80px 12px; }
+  #mobile-tabs {
+    display:flex !important; position:fixed; bottom:0; left:0; right:0;
+    background:var(--card); border-top:1px solid var(--border);
+    z-index:1000; height:60px; overflow-x:auto;
+  }
+  .mob-tab {
+    flex:1; min-width:50px; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:2px; color:var(--text-dim); cursor:pointer;
+    font-size:10px; border:none; background:none; padding:4px 2px;
+  }
+  .mob-tab.active { color:var(--amber); }
+  .mob-tab-icon { font-size:20px; }
+  /* FIX 2: Dual AI panels stack on mobile */
+  .dual-ai-panels { flex-direction:column !important; }
+  .dual-ai-panels .ai-panel { width:100% !important; }
+}
+#mobile-tabs { display:none; }
+
+/* ═══════════════════════════════════════════
+   CARDS, BUTTONS, INPUTS
+   ═══════════════════════════════════════════ */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-header {
+  font-size: 16px; font-weight: 600; margin-bottom: 14px;
+  display:flex; align-items:center; gap:8px;
+}
+.btn {
+  padding: 8px 16px; border-radius: 6px; border:1px solid var(--border);
+  background: var(--card); color: var(--text); cursor:pointer;
+  font-size: 13px; transition: all var(--transition); display:inline-flex;
+  align-items:center; gap:6px;
+}
+.btn:hover { border-color: var(--amber); color: var(--amber); }
+.btn-amber {
+  background: var(--amber); color:#000; border-color:var(--amber); font-weight:600;
+}
+.btn-amber:hover { background:#b8891a; border-color:#b8891a; color:#000; }
+.btn-sm { padding:5px 10px; font-size:12px; }
+.btn-group { display:flex; gap:4px; flex-wrap:wrap; }
+.btn-group .btn.active-green { background:var(--green); color:#000; border-color:var(--green); }
+.btn-group .btn.active-red { background:var(--red); color:#fff; border-color:var(--red); }
+.btn-group .btn.active-yellow { background:var(--yellow); color:#000; border-color:var(--yellow); }
+.btn-group .btn.active-blue { background:var(--blue); color:#fff; border-color:var(--blue); }
+.btn-group .btn.active-orange { background:#f97316; color:#000; border-color:#f97316; }
+.btn-group .btn.active-gray { background:#6b7280; color:#fff; border-color:#6b7280; }
+.btn-group .btn.active-purple { background:var(--purple); color:#000; border-color:var(--purple); }
+.btn-group .btn.active-amber { background:var(--amber); color:#000; border-color:var(--amber); }
+
+.input {
+  width:100%; padding:8px 12px; background:var(--bg); border:1px solid var(--border);
+  border-radius:6px; color:var(--text); font-size:13px; transition:border-color var(--transition);
+}
+.input:focus { outline:none; border-color:var(--amber); }
+textarea.input { resize:vertical; min-height:60px; }
+.label { font-size:12px; color:var(--text-dim); margin-bottom:4px; display:block; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.grid-4 { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+@media(max-width:600px) { .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; } }
+
+/* ═══════════════════════════════════════════
+   FIX 1: SESSION STATUS BAR — Two permanent rows
+   ═══════════════════════════════════════════ */
+#status-bar {
+  background: var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:12px 20px; margin-bottom:16px;
+}
+#clock { font-family:'Courier New',monospace; font-size:28px; font-weight:700; color:var(--amber); text-align:center; }
+#date-display { text-align:center; font-size:12px; color:var(--text-dim); margin-top:2px; margin-bottom:10px; }
+.session-row {
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  padding:10px 14px; border-radius:8px; margin-bottom:6px;
+  border:1px solid var(--border); background:rgba(0,0,0,0.2); transition:all 0.3s ease;
+}
+.session-row.ny-row { font-size:15px; }
+.session-row.ny-open { border-color:var(--green); box-shadow:0 0 12px rgba(34,197,94,0.2); }
+.session-row.golden-active { border-color:var(--amber) !important; box-shadow:0 0 16px rgba(212,160,23,0.25) !important; }
+.session-name { font-weight:700; font-size:14px; }
+.session-row.ny-row .session-name { font-size:16px; }
+.session-status-badge {
+  padding:4px 12px; border-radius:12px; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.5px;
+}
+.status-open-london { background:rgba(59,130,246,0.25); color:var(--blue); border:1px solid var(--blue); animation:glowPulseBlue 2s infinite; }
+.status-open-ny { background:rgba(34,197,94,0.25); color:var(--green); border:1px solid var(--green); animation:glowPulseGreen 2s infinite; }
+.status-closed { background:rgba(107,114,128,0.2); color:#9ca3af; border:1px solid #4b5563; }
+.session-countdown { font-size:12px; color:var(--text-dim); }
+.golden-window-label { font-size:11px; margin-top:4px; width:100%; }
+.golden-now { color:var(--amber); font-weight:700; animation:goldenPulse 1.5s infinite; }
+.golden-soon { color:var(--yellow); font-weight:600; }
+.golden-passed { color:#6b7280; }
+.golden-waiting { color:#6b7280; }
+@keyframes glowPulseBlue { 0%,100%{box-shadow:0 0 4px rgba(59,130,246,0.3)} 50%{box-shadow:0 0 10px rgba(59,130,246,0.6)} }
+@keyframes glowPulseGreen { 0%,100%{box-shadow:0 0 4px rgba(34,197,94,0.3)} 50%{box-shadow:0 0 10px rgba(34,197,94,0.6)} }
+@keyframes goldenPulse { 0%,100%{opacity:0.7} 50%{opacity:1} }
+
+/* ═══════════════════════════════════════════
+   INSTRUMENT CARDS
+   ═══════════════════════════════════════════ */
+.instrument-card {
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:16px; position:relative; cursor:grab; transition:box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.instrument-card.dragging { opacity:0.5; }
+/* FIX 5F: green glow when active setup is ON */
+.instrument-card.active-setup { border-color:var(--green); box-shadow:0 0 12px rgba(34,197,94,0.2); }
+.instrument-name {
+  font-size:16px; font-weight:700; color:var(--amber); cursor:pointer;
+  border:none; background:none; outline:none; width:calc(100% - 30px);
+}
+.instrument-delete {
+  position:absolute; top:8px; right:10px; background:none; border:none;
+  color:var(--text-dim); cursor:pointer; font-size:18px; padding:4px;
+}
+.instrument-delete:hover { color:var(--red); }
+.instrument-section { margin-top:10px; }
+.instrument-section .label { margin-bottom:6px; }
+.toggle-switch {
+  display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+}
+.toggle-track {
+  width:48px; height:24px; border-radius:12px; background:#374151;
+  position:relative; transition:background var(--transition);
+}
+.toggle-track.on { background:var(--green); }
+.toggle-knob {
+  width:20px; height:20px; border-radius:50%; background:#fff;
+  position:absolute; top:2px; left:2px; transition:left var(--transition);
+}
+.toggle-track.on .toggle-knob { left:26px; }
+.updated-time { font-size:11px; color:var(--text-dim); margin-top:8px; }
+
+/* ═══════════════════════════════════════════
+   CHECKLIST
+   ═══════════════════════════════════════════ */
+.checklist-item {
+  display:flex; align-items:flex-start; gap:10px; padding:8px 0;
+  border-bottom:1px solid var(--border); font-size:13px;
+}
+.checklist-item:last-child { border-bottom:none; }
+.checklist-item input[type="checkbox"] {
+  accent-color:var(--amber); width:18px; height:18px; margin-top:2px; cursor:pointer; flex-shrink:0;
+}
+.score-banner {
+  padding:12px; border-radius:8px; text-align:center; font-weight:600;
+  font-size:15px; margin-top:12px;
+}
+.score-green { background:rgba(34,197,94,0.15); color:var(--green); border:1px solid var(--green); }
+.score-yellow { background:rgba(234,179,8,0.15); color:var(--yellow); border:1px solid var(--yellow); }
+.score-red { background:rgba(239,68,68,0.15); color:var(--red); border:1px solid var(--red); }
+
+/* ═══════════════════════════════════════════
+   AI CHAT
+   ═══════════════════════════════════════════ */
+.chat-messages {
+  max-height:400px; overflow-y:auto; padding:10px; display:flex;
+  flex-direction:column; gap:10px;
+}
+.chat-msg {
+  padding:10px 14px; border-radius:8px; font-size:13px; max-width:85%;
+  line-height:1.5; white-space:pre-wrap;
+}
+.chat-msg.user { background:rgba(212,160,23,0.15); color:var(--amber); align-self:flex-end; }
+.chat-msg.ai { background:rgba(167,139,250,0.12); color:var(--text); align-self:flex-start; }
+.chat-msg.ai-claude { background:rgba(167,139,250,0.12); color:var(--text); align-self:flex-start; border-left:3px solid var(--purple); }
+.chat-msg.ai-openai { background:rgba(34,197,94,0.08); color:var(--text); align-self:flex-start; border-left:3px solid var(--green); }
+.chat-msg .chat-time { font-size:10px; color:var(--text-dim); margin-top:4px; display:block; }
+.chat-input-row { display:flex; gap:8px; margin-top:10px; }
+.chat-input-row .input { flex:1; }
+
+/* ═══════════════════════════════════════════
+   FIX 2: DUAL AI RESULT PANELS
+   ═══════════════════════════════════════════ */
+.dual-ai-panels {
+  display:flex; gap:12px; margin-top:12px;
+}
+.ai-panel {
+  flex:1; background:var(--bg); border:1px solid var(--border); border-radius:10px;
+  padding:16px; min-width:0;
+}
+.ai-panel.full-width { width:100%; }
+.ai-panel-header {
+  font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:6px;
+}
+.ai-panel-header.claude { color:var(--purple); }
+.ai-panel-header.openai { color:var(--green); }
+.ai-panel-body {
+  font-size:13px; line-height:1.7; white-space:pre-wrap; word-wrap:break-word;
+}
+.ai-panel-footer {
+  font-size:10px; color:var(--text-dim); margin-top:10px; padding-top:8px;
+  border-top:1px solid var(--border);
+}
+.ai-panel-error { color:var(--red); font-size:13px; }
+.ai-panel-loading {
+  display:flex; align-items:center; gap:8px; color:var(--text-dim); font-size:13px; padding:20px 0;
+}
+
+/* ═══════════════════════════════════════════
+   TOAST NOTIFICATIONS
+   ═══════════════════════════════════════════ */
+#toast-container {
+  position:fixed; bottom:20px; right:20px; z-index:9999;
+  display:flex; flex-direction:column; gap:8px;
+}
+.toast {
+  padding:12px 20px; border-radius:8px; font-size:13px; font-weight:500;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+  max-width:320px;
+}
+.toast-success { background:rgba(34,197,94,0.9); color:#000; }
+.toast-error { background:rgba(239,68,68,0.9); color:#fff; }
+.toast-info { background:rgba(59,130,246,0.9); color:#fff; }
+@keyframes toastIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(-10px)} }
+
+/* ═══════════════════════════════════════════
+   FIX 5F: LOADING SPINNER — wave animation, bigger dots
+   ═══════════════════════════════════════════ */
+.loading {
+  display:inline-flex; align-items:center; gap:8px; color:var(--amber);
+  font-size:14px;
+}
+.loading-dot {
+  width:10px; height:10px; border-radius:50%; background:var(--amber);
+  animation: dotWave 1.2s ease-in-out infinite;
+}
+.loading-dot:nth-child(2) { animation-delay:0.2s; }
+.loading-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes dotWave { 0%,100%{opacity:0.3;transform:scale(0.7)} 50%{opacity:1;transform:scale(1.3)} }
+
+/* ═══════════════════════════════════════════
+   DRAG & DROP ZONE
+   ═══════════════════════════════════════════ */
+.drop-zone {
+  border:2px dashed var(--border); border-radius:10px; padding:40px;
+  text-align:center; color:var(--text-dim); cursor:pointer;
+  transition:all var(--transition);
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color:var(--amber); color:var(--amber); background:rgba(212,160,23,0.05);
+}
+.drop-zone img { max-height:400px; max-width:100%; border-radius:8px; margin-top:12px; }
+
+/* ═══════════════════════════════════════════
+   TABLES
+   ═══════════════════════════════════════════ */
+.data-table {
+  width:100%; border-collapse:collapse; font-size:13px;
+}
+.data-table th {
+  text-align:left; padding:10px 12px; border-bottom:2px solid var(--border);
+  color:var(--text-dim); font-weight:600; cursor:pointer; white-space:nowrap;
+}
+.data-table th:hover { color:var(--amber); }
+.data-table td {
+  padding:10px 12px; border-bottom:1px solid var(--border);
+}
+.data-table tr:hover td { background:rgba(255,255,255,0.02); }
+.data-table .sort-arrow { font-size:10px; margin-left:4px; }
+
+/* ═══════════════════════════════════════════
+   RESULT CARDS
+   ═══════════════════════════════════════════ */
+.result-card {
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:20px; margin-top:16px;
+}
+.result-row {
+  display:flex; align-items:flex-start; gap:8px; padding:6px 0;
+  border-bottom:1px solid rgba(30,35,48,0.5); font-size:13px;
+}
+.result-label { color:var(--text-dim); min-width:140px; font-weight:600; }
+.result-value { color:var(--text); flex:1; }
+.verdict-take { color:var(--green); font-weight:700; font-size:16px; }
+.verdict-wait { color:var(--yellow); font-weight:700; font-size:16px; }
+.verdict-skip { color:var(--red); font-weight:700; font-size:16px; }
+
+/* ═══════════════════════════════════════════
+   PLAYBOOK SECTIONS
+   ═══════════════════════════════════════════ */
+.playbook-section {
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  margin-bottom:12px; overflow:hidden;
+}
+.playbook-header {
+  padding:14px 20px; cursor:pointer; display:flex; align-items:center;
+  justify-content:space-between; font-weight:600; font-size:15px;
+  transition:background var(--transition);
+}
+.playbook-header:hover { background:rgba(255,255,255,0.03); }
+.playbook-content { padding:0 20px 16px; font-size:13px; line-height:1.8; }
+.playbook-content ul { padding-left:20px; }
+.playbook-content li { margin-bottom:4px; }
+.playbook-section.no-trade { border-color:var(--red); }
+.playbook-section.no-trade .playbook-header { color:var(--red); }
+
+/* FIX 5E: Quick Reference Card */
+.quick-ref-card {
+  background:var(--bg); border:1px solid var(--amber); border-radius:10px;
+  padding:16px; margin-bottom:16px;
+}
+.quick-ref-card h3 { color:var(--amber); font-size:14px; margin-bottom:10px; }
+.quick-ref-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:6px 16px; font-size:12px;
+}
+@media(max-width:600px) { .quick-ref-grid { grid-template-columns:1fr; } }
+.quick-ref-grid .qr-item {
+  padding:5px 8px; background:rgba(212,160,23,0.06); border-radius:4px;
+  border-left:2px solid var(--amber);
+}
+.quick-ref-grid .qr-item strong { color:var(--amber); }
+
+/* ═══════════════════════════════════════════
+   SETTINGS
+   ═══════════════════════════════════════════ */
+.settings-group { margin-bottom:24px; }
+.settings-group h3 { font-size:16px; margin-bottom:12px; color:var(--amber); }
+.setting-row {
+  display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;
+}
+.setting-row label { min-width:160px; font-size:13px; color:var(--text-dim); }
+.password-wrap {
+  position:relative; flex:1; display:flex; gap:8px;
+}
+.password-wrap .input { flex:1; }
+.password-toggle {
+  background:none; border:1px solid var(--border); border-radius:6px;
+  color:var(--text-dim); cursor:pointer; padding:0 10px; font-size:12px;
+}
+
+/* FIX 5D: AI Status Panel */
+.ai-status-panel {
+  display:flex; gap:12px; flex-wrap:wrap; padding:14px; background:var(--bg);
+  border:1px solid var(--border); border-radius:10px; margin-bottom:16px; font-size:13px;
+}
+.ai-status-item { display:flex; align-items:center; gap:6px; }
+
+/* ═══════════════════════════════════════════
+   TABS
+   ═══════════════════════════════════════════ */
+.tabs { display:flex; gap:4px; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:4px; }
+.tab-btn {
+  padding:8px 16px; background:none; border:none; color:var(--text-dim);
+  cursor:pointer; font-size:13px; border-bottom:2px solid transparent;
+  transition:all var(--transition);
+}
+.tab-btn:hover { color:var(--text); }
+.tab-btn.active { color:var(--amber); border-bottom-color:var(--amber); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* ═══════════════════════════════════════════
+   SCANNER RESULT CARDS
+   ═══════════════════════════════════════════ */
+.scan-result {
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:16px; margin-bottom:12px;
+}
+.scan-result .instrument-badge {
+  font-size:16px; font-weight:700; color:var(--amber); margin-bottom:8px;
+}
+.rating-strong { color:var(--green); font-weight:700; }
+.rating-moderate { color:var(--yellow); font-weight:700; }
+.rating-weak { color:#f97316; font-weight:700; }
+.rating-nosetup { color:var(--text-dim); font-weight:700; }
+
+/* ═══════════════════════════════════════════
+   STRATEGY CARDS — FIX 3: with descriptions
+   ═══════════════════════════════════════════ */
+.strategy-type-card {
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:14px; cursor:pointer; text-align:center; transition:all var(--transition);
+}
+.strategy-type-card:hover, .strategy-type-card.selected {
+  border-color:var(--purple); color:var(--purple);
+}
+.strategy-type-card .strat-desc {
+  font-size:11px; color:var(--text-dim); font-style:italic; margin-top:6px;
+  line-height:1.4;
+}
+
+/* ═══════════════════════════════════════════
+   METRIC CARDS
+   ═══════════════════════════════════════════ */
+.metric-card {
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  padding:16px; text-align:center;
+}
+.metric-value { font-size:28px; font-weight:700; color:var(--amber); }
+.metric-label { font-size:12px; color:var(--text-dim); margin-top:4px; }
+
+/* ═══════════════════════════════════════════
+   FIX 4: Column Glossary
+   ═══════════════════════════════════════════ */
+.column-glossary {
+  background:var(--bg); border:1px solid var(--border); border-radius:8px;
+  padding:12px 16px; margin-bottom:12px; font-size:12px;
+}
+.column-glossary table { width:100%; border-collapse:collapse; }
+.column-glossary td { padding:4px 8px; border-bottom:1px solid var(--border); }
+.column-glossary td:first-child { font-weight:700; color:var(--amber); white-space:nowrap; width:100px; }
+
+/* ═══════════════════════════════════════════
+   FIX 5A: No-Trade Warning
+   ═══════════════════════════════════════════ */
+.no-trade-detector {
+  padding:12px 16px; border-radius:8px; margin-top:12px; font-size:13px; font-weight:600;
+}
+.no-trade-detector.warning { background:rgba(239,68,68,0.12); color:var(--red); border:1px solid var(--red); }
+.no-trade-detector.clear { background:rgba(34,197,94,0.1); color:var(--green); border:1px solid var(--green); }
+
+/* ═══════════════════════════════════════════
+   FIX 5B: Context Helper Tip Box
+   ═══════════════════════════════════════════ */
+.tip-box {
+  background:rgba(212,160,23,0.06); border:1px solid rgba(212,160,23,0.2);
+  border-radius:8px; padding:10px 14px; font-size:12px; color:var(--text-dim);
+  margin-bottom:12px; line-height:1.6;
+}
+
+/* ═══════════════════════════════════════════
+   FIX 5C: Risk Preset Buttons
+   ═══════════════════════════════════════════ */
+.preset-btns { display:flex; gap:8px; margin-bottom:12px; }
+
+/* ═══════════════════════════════════════════
+   FIX 2: Settings AI Toggle Switches
+   ═══════════════════════════════════════════ */
+.ai-toggle-row {
+  display:flex; align-items:center; gap:12px; padding:10px 0;
+  border-bottom:1px solid var(--border); flex-wrap:wrap;
+}
+.ai-toggle-row .ai-engine-name { font-weight:600; min-width:180px; font-size:14px; }
+
+/* ═══════════════════════════════════════════
+   MISC
+   ═══════════════════════════════════════════ */
+/* FIX 5F: page titles with amber left border */
+.section-title { font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.divider { height:1px; background:var(--border); margin:20px 0; }
+.collapsible-header {
+  display:flex; align-items:center; justify-content:space-between; cursor:pointer;
+  padding:10px 0;
+}
+.collapsible-header .arrow { transition:transform var(--transition); }
+.collapsible-header.collapsed .arrow { transform:rotate(-90deg); }
+.badge { padding:3px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+.badge-green { background:rgba(34,197,94,0.2); color:var(--green); }
+.badge-red { background:rgba(239,68,68,0.2); color:var(--red); }
+.badge-yellow { background:rgba(234,179,8,0.2); color:var(--yellow); }
+.badge-blue { background:rgba(59,130,246,0.2); color:var(--blue); }
+.badge-purple { background:rgba(167,139,250,0.2); color:var(--purple); }
+.text-center { text-align:center; }
+.mt-8 { margin-top:8px; }
+.mt-12 { margin-top:12px; }
+.mt-16 { margin-top:16px; }
+.mb-8 { margin-bottom:8px; }
+.mb-12 { margin-bottom:12px; }
+.mb-16 { margin-bottom:16px; }
+.flex-between { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+.gap-8 { gap:8px; }
+.overflow-x { overflow-x:auto; }
+.hidden { display:none !important; }
+h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-left:12px; border-left:3px solid var(--amber); }
+.filter-bar { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.filter-bar select, .filter-bar input { padding:6px 10px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px; }
+.chart-container { position:relative; height:300px; margin:16px 0; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:5000; display:flex; align-items:center; justify-content:center; }
+.modal { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; max-width:420px; width:90%; }
+.modal h3 { margin-bottom:12px; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+</style>
+</head>
+<body>
+<!-- ═══════════════════════════════════════════
+     SIDEBAR NAVIGATION
+     ═══════════════════════════════════════════ -->
+<nav id="sidebar">
+  <button id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+  <div class="nav-items">
+    <button class="nav-item active" onclick="goPage(0)" data-page="0">
+      <span class="nav-icon">🏠</span><span class="nav-label">Command Center</span>
+    </button>
+    <button class="nav-item" onclick="goPage(1)" data-page="1">
+      <span class="nav-icon">🔍</span><span class="nav-label">Market Scanner</span>
+    </button>
+    <button class="nav-item" onclick="goPage(2)" data-page="2">
+      <span class="nav-icon">📸</span><span class="nav-label">Analyze Trade</span>
+    </button>
+    <button class="nav-item" onclick="goPage(3)" data-page="3">
+      <span class="nav-icon">📐</span><span class="nav-label">Strategy Lab</span>
+    </button>
+    <button class="nav-item" onclick="goPage(4)" data-page="4">
+      <span class="nav-icon">📋</span><span class="nav-label">Trade Journal</span>
+    </button>
+    <button class="nav-item" onclick="goPage(5)" data-page="5">
+      <span class="nav-icon">🧮</span><span class="nav-label">Risk Calculator</span>
+    </button>
+    <button class="nav-item" onclick="goPage(6)" data-page="6">
+      <span class="nav-icon">📚</span><span class="nav-label">SCI Playbook</span>
+    </button>
+    <button class="nav-item" onclick="goPage(7)" data-page="7">
+      <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile Bottom Tab Bar -->
+<div id="mobile-tabs">
+  <button class="mob-tab active" onclick="goPage(0)"><span class="mob-tab-icon">🏠</span>Home</button>
+  <button class="mob-tab" onclick="goPage(1)"><span class="mob-tab-icon">🔍</span>Scan</button>
+  <button class="mob-tab" onclick="goPage(2)"><span class="mob-tab-icon">📸</span>Analyze</button>
+  <button class="mob-tab" onclick="goPage(3)"><span class="mob-tab-icon">📐</span>Strategy</button>
+  <button class="mob-tab" onclick="goPage(4)"><span class="mob-tab-icon">📋</span>Journal</button>
+  <button class="mob-tab" onclick="goPage(5)"><span class="mob-tab-icon">🧮</span>Risk</button>
+  <button class="mob-tab" onclick="goPage(6)"><span class="mob-tab-icon">📚</span>Playbook</button>
+  <button class="mob-tab" onclick="goPage(7)"><span class="mob-tab-icon">⚙️</span>Settings</button>
+</div>
+
+<div id="toast-container"></div>
+
+<div id="main">
+
+<!-- ═══════════════════════════════════════════
+     PAGE 1: COMMAND CENTER
+     ═══════════════════════════════════════════ -->
+<div class="page active" id="page-0">
+  <!-- FIX 1: Status Bar with two permanent session rows -->
+  <div id="status-bar">
+    <div id="clock">--:--:-- --</div>
+    <div id="date-display">--</div>
+    <div class="session-row" id="london-row">
+      <span class="session-name">LONDON</span>
+      <span class="session-status-badge status-closed" id="london-badge">CLOSED</span>
+      <span class="session-countdown" id="london-countdown">--</span>
+      <span style="font-size:11px;color:var(--text-dim)">2:00 AM – 6:00 AM EST</span>
+      <div class="golden-window-label" id="london-golden">⚡ Golden Window: 2:00 AM – 3:30 AM EST</div>
+    </div>
+    <div class="session-row ny-row" id="ny-row">
+      <span class="session-name">NEW YORK ⭐</span>
+      <span style="font-size:10px;color:var(--text-dim)">Primary session</span>
+      <span class="session-status-badge status-closed" id="ny-badge">CLOSED</span>
+      <span class="session-countdown" id="ny-countdown">--</span>
+      <span style="font-size:11px;color:var(--text-dim)">8:30 AM – 12:00 PM EST</span>
+      <div class="golden-window-label" id="ny-golden">⚡ Golden Window: 8:30 AM – 10:00 AM EST</div>
+    </div>
+  </div>
+
+  <!-- Instrument Panel -->
+  <div class="flex-between mb-12">
+    <div class="section-title">Instrument Panel</div>
+    <button class="btn btn-amber btn-sm" onclick="addInstrument()">+ Add Instrument</button>
+  </div>
+  <div id="instruments-grid" class="grid-4"></div>
+
+  <!-- Pre-Trade Checklist -->
+  <div class="card mt-16">
+    <div class="card-header">Pre-Trade Checklist — <span id="checklist-date"></span></div>
+    <div id="checklist-items"></div>
+    <div id="checklist-score" class="mt-12" style="font-size:18px;font-weight:700;text-align:center;"></div>
+    <div id="checklist-banner"></div>
+  </div>
+
+  <!-- FIX 5A: No-Trade Zone Detector -->
+  <div id="no-trade-detector-wrap" class="mt-8"></div>
+
+  <!-- Quick AI Chat -->
+  <div class="card mt-16">
+    <div class="collapsible-header" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('hidden');">
+      <div class="card-header" style="margin-bottom:0">💬 Quick AI Chat</div>
+      <span class="arrow">▼</span>
+    </div>
+    <div>
+      <div class="chat-messages" id="quick-chat-messages"></div>
+      <div class="chat-input-row">
+        <input class="input" id="quick-chat-input" placeholder="Ask your trading assistant..." onkeydown="if(event.key==='Enter')sendQuickChat()">
+        <button class="btn btn-amber" onclick="sendQuickChat()">Send</button>
+      </div>
+      <button class="btn btn-sm mt-8" onclick="goPage(2)">Open Full Analyzer →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 2: MARKET SCANNER
+     ═══════════════════════════════════════════ -->
+<div class="page" id="page-1">
+  <h2 class="page-title">🔍 Market Scanner</h2>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--teal)">Run AI Scan Across All Instruments</div>
+    <div class="overflow-x">
+      <table class="data-table" id="scan-table">
+        <thead><tr><th>Instrument</th><th>Current Trend</th><th>ICC Phase</th><th>Upload Chart</th><th>Notes</th></tr></thead>
+        <tbody id="scan-table-body"></tbody>
+      </table>
+    </div>
+    <button class="btn btn-amber mt-12" onclick="runFullScan()">Run Full Scan →</button>
+    <div id="scan-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Scanning instruments...</div>
+    <div id="scan-results" class="mt-16"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--teal)">Identify What You're Seeing</div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">Instrument</label>
+        <select class="input" id="pattern-instrument"></select>
+      </div>
+      <div>
+        <label class="label">Screenshot (optional)</label>
+        <input type="file" accept="image/*" class="input" id="pattern-screenshot" style="padding:5px">
+      </div>
+    </div>
+    <label class="label">Describe what you see on your chart</label>
+    <textarea class="input mb-12" id="pattern-description" placeholder="e.g. Price broke above the previous swing high on 1H, now pulling back..."></textarea>
+    <button class="btn btn-amber" onclick="identifyPattern()">Identify Pattern →</button>
+    <div id="pattern-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Identifying pattern...</div>
+    <div id="pattern-result" class="mt-12"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--teal)">Generate Today's Pre-Market Brief</div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">Asian Session Notes (optional)</label>
+        <textarea class="input" id="brief-asian" placeholder="What happened in Asian session..."></textarea>
+      </div>
+      <div>
+        <label class="label">Key Price Levels to Watch (optional)</label>
+        <textarea class="input" id="brief-levels" placeholder="e.g. NQ 18500, Gold 2350..."></textarea>
+      </div>
+    </div>
+    <button class="btn btn-amber" onclick="generateBrief()">Generate Brief →</button>
+    <div id="brief-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Generating brief...</div>
+    <div id="brief-result" class="mt-12"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 3: ANALYZE TRADE
+     ═══════════════════════════════════════════ -->
+<div class="page" id="page-2">
+  <h2 class="page-title">📸 Analyze Trade</h2>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchAnalyzeTab(0)">📸 Screenshot</button>
+    <button class="tab-btn" onclick="switchAnalyzeTab(1)">📝 Manual Form</button>
+    <button class="tab-btn" onclick="switchAnalyzeTab(2)">📊 CSV Import</button>
+  </div>
+
+  <!-- Tab A: Screenshot -->
+  <div class="tab-content active" id="analyze-tab-0">
+    <!-- FIX 5B: Context Helper -->
+    <div class="tip-box" id="analyze-tip">
+      <div class="collapsible-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.arrow').classList.toggle('collapsed')" style="padding:0">
+        <span>💡 Tips for best AI analysis</span>
+        <span class="arrow" style="font-size:12px">▼</span>
+      </div>
+      <div class="hidden" style="margin-top:8px">
+        For best AI analysis: take your TradingView screenshot showing the full 1H chart.<br>
+        In the notes field below, add: instrument name, timeframe, and current session.<br>
+        <strong>Example:</strong> "NASDAQ 1H chart. NY session open. I see a potential HH forming at 21,500."
+      </div>
+    </div>
+    <div class="drop-zone" id="screenshot-drop" onclick="document.getElementById('screenshot-file').click()"
+         ondragover="event.preventDefault();this.classList.add('dragover')"
+         ondragleave="this.classList.remove('dragover')"
+         ondrop="handleScreenshotDrop(event)">
+      <div>📸 Drag & drop a chart screenshot here, or click to upload</div>
+      <div style="font-size:12px;margin-top:8px;color:var(--text-dim)">PNG, JPG, or WEBP</div>
+      <img id="screenshot-preview" style="display:none">
+      <input type="file" id="screenshot-file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handleScreenshotSelect(event)">
+    </div>
+    <label class="label mt-12">Notes — instrument, timeframe, session...</label>
+    <textarea class="input" id="screenshot-notes" placeholder="Add context about this chart..."></textarea>
+    <button class="btn btn-amber mt-12" onclick="analyzeScreenshot()">Analyze Chart →</button>
+    <div id="screenshot-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Analyzing chart...</div>
+    <div id="screenshot-result" class="mt-12"></div>
+  </div>
+
+  <!-- Tab B: Manual Form -->
+  <div class="tab-content" id="analyze-tab-1">
+    <div class="card">
+      <div class="grid-2 mb-12">
+        <div><label class="label">Instrument</label><input class="input" id="manual-instrument" placeholder="e.g. NASDAQ, Gold..."></div>
+        <div>
+          <label class="label">Direction</label>
+          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'manual-dir')" data-val="LONG">LONG</button><button class="btn" onclick="setManualBtn(this,'manual-dir')" data-val="SHORT">SHORT</button></div>
+          <input type="hidden" id="manual-dir">
+        </div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">4H Bias</label>
+          <div class="btn-group">
+            <button class="btn" onclick="setManualBtn(this,'manual-4h','active-green')" data-val="BULL">BULL / UPTREND ▲</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-4h','active-red')" data-val="BEAR">BEAR / DOWNTREND ▼</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-4h','active-yellow')" data-val="RANGE">RANGE / CONSOLIDATION ◆</button>
+          </div>
+          <input type="hidden" id="manual-4h">
+        </div>
+        <div>
+          <label class="label">1H Structure</label>
+          <div class="btn-group">
+            <button class="btn" onclick="setManualBtn(this,'manual-1h','active-green')" data-val="BULL">BULL / UPTREND ▲</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-1h','active-red')" data-val="BEAR">BEAR / DOWNTREND ▼</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-1h','active-yellow')" data-val="RANGE">RANGE / CONSOLIDATION ◆</button>
+          </div>
+          <input type="hidden" id="manual-1h">
+        </div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Current ICC Phase</label>
+          <div class="btn-group">
+            <button class="btn" onclick="setManualBtn(this,'manual-icc','active-blue')" data-val="INDICATION">INDICATION</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-icc','active-orange')" data-val="CORRECTION">CORRECTION</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-icc','active-green')" data-val="CONTINUATION">CONTINUATION</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-icc','active-gray')" data-val="UNCLEAR">UNCLEAR</button>
+          </div>
+          <input type="hidden" id="manual-icc">
+        </div>
+        <div>
+          <label class="label">Active Session</label>
+          <div class="btn-group">
+            <button class="btn" onclick="setManualBtn(this,'manual-session','active-blue')" data-val="LONDON">LONDON</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-session','active-green')" data-val="NEW YORK">NEW YORK</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-session','active-purple')" data-val="ASIAN">ASIAN</button>
+            <button class="btn" onclick="setManualBtn(this,'manual-session','active-gray')" data-val="OUTSIDE">OUTSIDE SESSION</button>
+          </div>
+          <input type="hidden" id="manual-session">
+        </div>
+      </div>
+      <div class="grid-3 mb-12">
+        <div><label class="label">Swing High</label><input type="number" class="input" id="manual-sh" step="any"></div>
+        <div><label class="label">Swing Low</label><input type="number" class="input" id="manual-sl" step="any"></div>
+        <div><label class="label">Entry Price</label><input type="number" class="input" id="manual-entry" step="any"></div>
+      </div>
+      <div class="grid-3 mb-12">
+        <div><label class="label">Stop Loss</label><input type="number" class="input" id="manual-stop" step="any"></div>
+        <div><label class="label">Target Price</label><input type="number" class="input" id="manual-target" step="any"></div>
+        <div></div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Equal Highs Present?</label>
+          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'manual-eqh')" data-val="YES">YES</button><button class="btn" onclick="setManualBtn(this,'manual-eqh')" data-val="NO">NO</button></div>
+          <input type="hidden" id="manual-eqh">
+        </div>
+        <div>
+          <label class="label">Equal Lows Present?</label>
+          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'manual-eql')" data-val="YES">YES</button><button class="btn" onclick="setManualBtn(this,'manual-eql')" data-val="NO">NO</button></div>
+          <input type="hidden" id="manual-eql">
+        </div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Attempt at Level</label>
+          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'manual-attempt')" data-val="FIRST">FIRST</button><button class="btn" onclick="setManualBtn(this,'manual-attempt')" data-val="SECOND">SECOND</button></div>
+          <input type="hidden" id="manual-attempt">
+        </div>
+      </div>
+      <label class="label">Notes</label>
+      <textarea class="input mb-12" id="manual-notes" placeholder="Additional context..."></textarea>
+      <button class="btn btn-amber" onclick="analyzeManual()">Analyze Setup →</button>
+      <div id="manual-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Analyzing setup...</div>
+      <div id="manual-result" class="mt-12"></div>
+    </div>
+  </div>
+
+  <!-- Tab C: CSV Import -->
+  <div class="tab-content" id="analyze-tab-2">
+    <div class="drop-zone" id="csv-drop" onclick="document.getElementById('csv-file').click()"
+         ondragover="event.preventDefault();this.classList.add('dragover')"
+         ondragleave="this.classList.remove('dragover')"
+         ondrop="handleCSVDrop(event)">
+      <div>📊 Drag & drop a CSV file here, or click to upload</div>
+      <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSVSelect(event)">
+    </div>
+    <div id="csv-preview" class="mt-12 overflow-x"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 4: STRATEGY LAB — FIX 3: descriptions added
+     ═══════════════════════════════════════════ -->
+<div class="page" id="page-3">
+  <h2 class="page-title">📐 Strategy Lab</h2>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--purple)">Build a Strategy</div>
+    <div class="grid-3 mb-16" id="strategy-types">
+      <div class="strategy-type-card" onclick="selectStrategyType(this,'⭐ ICC ⭐')">
+        <div style="font-weight:600">⭐ ICC ⭐</div>
+        <div class="strat-desc">Enter during the continuation phase — after a swing high/low is broken (indication), price pulls back (correction), and price then continues in the original direction. The continuation phase IS your entry signal. This is the highest probability SCI setup.</div>
+      </div>
+      <div class="strategy-type-card" onclick="selectStrategyType(this,'Breakout Retest')">
+        <div style="font-weight:600">Breakout Retest</div>
+        <div class="strat-desc">Price breaks a key level, returns to retest it from the other side, then continues. Enter on the retest confirmation.</div>
+      </div>
+      <div class="strategy-type-card" onclick="selectStrategyType(this,'Session Open Play')">
+        <div style="font-weight:600">Session Open Play</div>
+        <div class="strat-desc">Trade the initial momentum at the open of London (2AM) or New York (8:30AM) sessions when institutional volume enters.</div>
+      </div>
+      <div class="strategy-type-card" onclick="selectStrategyType(this,'Trend Following')">
+        <div style="font-weight:600">Trend Following</div>
+        <div class="strat-desc">Trade in the direction of the higher timeframe trend only. Enter on pullbacks to structure in an established HH/HL or LH/LL sequence.</div>
+      </div>
+      <div class="strategy-type-card" onclick="selectStrategyType(this,'Counter-trend Setup')">
+        <div style="font-weight:600">Counter-trend Setup</div>
+        <div class="strat-desc">Trade against the current trend when a reversal pattern appears. Higher risk — requires strong confirmation and smaller position size.</div>
+      </div>
+      <div class="strategy-type-card" onclick="selectStrategyType(this,'Custom')">
+        <div style="font-weight:600">Custom</div>
+        <div class="strat-desc">Build a completely custom strategy using your own rules. Fill in all fields manually.</div>
+      </div>
+    </div>
+    <div id="strategy-form" class="hidden">
+      <input type="hidden" id="strategy-type-val">
+      <div class="grid-2 mb-12">
+        <div><label class="label">Strategy Name</label><input class="input" id="strat-name" placeholder="My Strategy..."></div>
+        <div><label class="label">Instruments</label><div id="strat-instruments" class="btn-group"></div></div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div><label class="label">Timeframe Bias (4H + 1H)</label><input class="input" id="strat-tf" placeholder="e.g. 4H Bull + 1H Bull"></div>
+        <div><label class="label">Entry Trigger (15M)</label><input class="input" id="strat-trigger" placeholder="What must happen on 15M..."></div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div><label class="label">Stop Placement Rule</label><input class="input" id="strat-stop" placeholder="Below swing low..."></div>
+        <div><label class="label">Target 1 Rule</label><input class="input" id="strat-t1" placeholder="Previous swing high..."></div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div><label class="label">Target 2 Rule</label><input class="input" id="strat-t2" placeholder="Next major resistance..."></div>
+        <div>
+          <label class="label">Session</label>
+          <div class="btn-group">
+            <button class="btn" onclick="setManualBtn(this,'strat-session','active-blue')" data-val="London">London</button>
+            <button class="btn" onclick="setManualBtn(this,'strat-session','active-green')" data-val="NY">NY</button>
+            <button class="btn" onclick="setManualBtn(this,'strat-session','active-amber')" data-val="Both">Both</button>
+          </div>
+          <input type="hidden" id="strat-session">
+        </div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Risk Per Trade</label>
+          <div class="btn-group">
+            <button class="btn" onclick="setManualBtn(this,'strat-risk','active-amber')" data-val="1%">1%</button>
+            <button class="btn" onclick="setManualBtn(this,'strat-risk','active-amber')" data-val="2%">2%</button>
+            <button class="btn" onclick="setManualBtn(this,'strat-risk','active-amber')" data-val="3%">3%</button>
+          </div>
+          <input type="hidden" id="strat-risk">
+        </div>
+      </div>
+      <label class="label">Notes</label>
+      <textarea class="input mb-12" id="strat-notes" placeholder="Additional strategy notes..."></textarea>
+      <button class="btn btn-amber" onclick="generateStrategy()">Generate Strategy Rules →</button>
+      <div id="strat-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Generating strategy...</div>
+      <div id="strat-result" class="mt-12"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--purple)">Saved Strategies</div>
+    <div id="saved-strategies"></div>
+    <div id="no-strategies" class="text-center" style="color:var(--text-dim);padding:20px;">No strategies saved yet. Build one above!</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="color:var(--purple)">Export Strategy for Lona Agency Backtesting</div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">Select a Saved Strategy</label>
+        <select class="input" id="lona-strategy-select" onchange="generateLonaPrompt()"><option value="">-- Select --</option></select>
+      </div>
+    </div>
+    <div id="lona-prompt-wrap" class="hidden">
+      <label class="label">Formatted Lona Prompt</label>
+      <textarea class="input" id="lona-prompt" rows="8" readonly></textarea>
+      <button class="btn btn-amber btn-sm mt-8" onclick="navigator.clipboard.writeText(document.getElementById('lona-prompt').value);showToast('Copied to clipboard!','success')">Copy for Lona Agency</button>
+    </div>
+    <div class="divider"></div>
+    <div class="card-header" style="color:var(--purple)">Import Lona Results</div>
+    <textarea class="input mb-12" id="lona-results" placeholder="Paste Lona Agency's backtesting output here..."></textarea>
+    <button class="btn btn-amber" onclick="processLonaResults()">Process & Save Results →</button>
+    <div id="lona-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Processing results...</div>
+    <div id="lona-result-display" class="mt-12"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 5: TRADE JOURNAL — FIX 4: column glossary + renamed headers
+     ═══════════════════════════════════════════ -->
+<div class="page" id="page-4">
+  <h2 class="page-title">📋 Trade Journal</h2>
+
+  <!-- Log Trade Form -->
+  <div class="card">
+    <div class="collapsible-header collapsed" onclick="this.classList.toggle('collapsed');document.getElementById('log-trade-form').classList.toggle('hidden');">
+      <div class="card-header" style="margin-bottom:0">＋ Log Trade</div>
+      <span class="arrow">▼</span>
+    </div>
+    <div id="log-trade-form" class="hidden">
+      <div class="grid-2 mb-12">
+        <div><label class="label">Date/Time</label><input type="datetime-local" class="input" id="trade-datetime"></div>
+        <div><label class="label">Instrument</label><input class="input" id="trade-instrument" placeholder="e.g. NASDAQ"></div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Direction</label>
+          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'trade-dir','active-green')" data-val="LONG">LONG</button><button class="btn" onclick="setManualBtn(this,'trade-dir','active-red')" data-val="SHORT">SHORT</button></div>
+          <input type="hidden" id="trade-dir">
+        </div>
+        <div>
+          <label class="label">Result</label>
+          <div class="btn-group">
+            <button class="btn" onclick="setManualBtn(this,'trade-result','active-green')" data-val="WIN">WIN</button>
+            <button class="btn" onclick="setManualBtn(this,'trade-result','active-red')" data-val="LOSS">LOSS</button>
+            <button class="btn" onclick="setManualBtn(this,'trade-result','active-yellow')" data-val="BREAKEVEN">BREAKEVEN</button>
+          </div>
+          <input type="hidden" id="trade-result">
+        </div>
+      </div>
+      <div class="grid-3 mb-12">
+        <div><label class="label">Entry Price</label><input type="number" class="input" id="trade-entry" step="any"></div>
+        <div><label class="label">Stop Price</label><input type="number" class="input" id="trade-stop" step="any"></div>
+        <div><label class="label">Target 1 Price</label><input type="number" class="input" id="trade-t1" step="any"></div>
+      </div>
+      <div class="grid-3 mb-12">
+        <div><label class="label">Target 2 Price</label><input type="number" class="input" id="trade-t2" step="any"></div>
+        <div><label class="label">Final Exit Price</label><input type="number" class="input" id="trade-exit" step="any"></div>
+        <div><label class="label">R Multiple</label><input type="number" class="input" id="trade-r" step="0.1" placeholder="e.g. 2.5 or -1"></div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Target 1 Hit?</label>
+          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'trade-t1hit','active-green')" data-val="YES">YES</button><button class="btn" onclick="setManualBtn(this,'trade-t1hit','active-red')" data-val="NO">NO</button></div>
+          <input type="hidden" id="trade-t1hit">
+        </div>
+        <div>
+          <label class="label">ICC Phase at Entry</label>
+          <div class="btn-group">
+            <button class="btn" onclick="setManualBtn(this,'trade-phase','active-blue')" data-val="INDICATION">INDICATION</button>
+            <button class="btn" onclick="setManualBtn(this,'trade-phase','active-orange')" data-val="CORRECTION">CORRECTION</button>
+            <button class="btn" onclick="setManualBtn(this,'trade-phase','active-green')" data-val="CONTINUATION">CONTINUATION</button>
+          </div>
+          <input type="hidden" id="trade-phase">
+        </div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Session</label>
+          <div class="btn-group">
+            <button class="btn" onclick="setManualBtn(this,'trade-session','active-blue')" data-val="LONDON">LONDON</button>
+            <button class="btn" onclick="setManualBtn(this,'trade-session','active-green')" data-val="NEW YORK">NEW YORK</button>
+          </div>
+          <input type="hidden" id="trade-session">
+        </div>
+        <div>
+          <label class="label">Strategy Used</label>
+          <select class="input" id="trade-strategy"><option value="Manual SCI">Manual SCI</option></select>
+        </div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Checklist Score at Time of Trade: <span id="trade-score-val">5</span>/10</label>
+          <input type="range" min="0" max="10" value="5" id="trade-score" style="width:100%" oninput="document.getElementById('trade-score-val').textContent=this.value">
+        </div>
+        <div>
+          <label class="label">Screenshot (optional)</label>
+          <input type="file" accept="image/*" class="input" id="trade-screenshot" style="padding:5px">
+        </div>
+      </div>
+      <label class="label">Notes</label>
+      <textarea class="input mb-12" id="trade-notes" placeholder="What happened, what you learned..."></textarea>
+      <div class="btn-group">
+        <button class="btn btn-amber" onclick="saveTrade()">Save Trade</button>
+        <button class="btn" onclick="aiReviewTrade()" style="color:var(--purple);border-color:var(--purple)">AI Review This Trade →</button>
+      </div>
+      <div id="trade-ai-review" class="mt-12"></div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <select id="filter-instrument" onchange="renderJournal()"><option value="">All Instruments</option></select>
+    <select id="filter-month" onchange="renderJournal()"><option value="">All Months</option></select>
+    <select id="filter-result" onchange="renderJournal()"><option value="">All Results</option><option>WIN</option><option>LOSS</option><option>BREAKEVEN</option></select>
+    <select id="filter-strategy" onchange="renderJournal()"><option value="">All Strategies</option></select>
+    <select id="filter-session" onchange="renderJournal()"><option value="">All Sessions</option><option>LONDON</option><option>NEW YORK</option></select>
+    <input class="input" style="max-width:200px" placeholder="Search notes..." id="filter-search" oninput="renderJournal()">
+  </div>
+
+  <!-- FIX 4: Column Glossary -->
+  <div id="column-glossary-wrap">
+    <div class="collapsible-header collapsed" onclick="this.classList.toggle('collapsed');document.getElementById('column-glossary-body').classList.toggle('hidden')" style="padding:6px 0;font-size:13px;color:var(--text-dim);cursor:pointer">
+      <span>❓ What do these columns mean?</span>
+      <span class="arrow" style="font-size:12px">▼</span>
+    </div>
+    <div id="column-glossary-body" class="column-glossary hidden">
+      <table>
+        <tr><td>Direction</td><td>Whether you went LONG (bought, betting price goes up) or SHORT (sold, betting price goes down)</td></tr>
+        <tr><td>Entry</td><td>The price you entered the trade at</td></tr>
+        <tr><td>Exit</td><td>The price you closed/exited the trade at</td></tr>
+        <tr><td>R Multiple</td><td>Risk Multiple — how many times your risk you made or lost. +2.5R means you made 2.5x your risk amount. -1R means you lost your full risk. More useful than dollar amounts.</td></tr>
+        <tr><td>ICC Phase</td><td>Which ICC phase you entered in: Indication, Correction, or Continuation</td></tr>
+        <tr><td>Strategy</td><td>Which saved strategy (from Strategy Lab) you used, or "Manual SCI"</td></tr>
+        <tr><td>Score</td><td>Your pre-trade checklist score out of 10 at the time you took the trade</td></tr>
+        <tr><td>Session</td><td>Whether you traded London (2AM–6AM EST) or New York (8:30AM–12PM EST)</td></tr>
+        <tr><td>Result</td><td>WIN, LOSS, or BREAKEVEN</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Journal Table — FIX 4: full column names -->
+  <div class="card overflow-x">
+    <table class="data-table" id="journal-table">
+      <thead><tr>
+        <th onclick="sortJournal('date')">Date <span class="sort-arrow"></span></th>
+        <th onclick="sortJournal('instrument')">Instrument</th>
+        <th onclick="sortJournal('dir')">Direction</th>
+        <th onclick="sortJournal('entry')">Entry</th>
+        <th onclick="sortJournal('exit')">Exit</th>
+        <th onclick="sortJournal('r')">R Multiple</th>
+        <th onclick="sortJournal('phase')">ICC Phase</th>
+        <th onclick="sortJournal('strategy')">Strategy</th>
+        <th onclick="sortJournal('score')">Score</th>
+        <th onclick="sortJournal('session')">Session</th>
+        <th>Notes</th>
+      </tr></thead>
+      <tbody id="journal-body"></tbody>
+    </table>
+    <div id="no-trades" class="text-center" style="color:var(--text-dim);padding:20px;">No trades logged yet.</div>
+  </div>
+
+  <!-- Stats Panel -->
+  <div class="card mt-16">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchJournalTab(0)">Overview</button>
+      <button class="tab-btn" onclick="switchJournalTab(1)">Charts</button>
+      <button class="tab-btn" onclick="switchJournalTab(2)">Daily Briefs</button>
+    </div>
+    <div class="tab-content active" id="journal-stats-0">
+      <div class="grid-4" id="stats-metrics"></div>
+    </div>
+    <div class="tab-content" id="journal-stats-1">
+      <div class="grid-2">
+        <div class="chart-container"><canvas id="chart-equity"></canvas></div>
+        <div class="chart-container"><canvas id="chart-instrument-wr"></canvas></div>
+        <div class="chart-container"><canvas id="chart-phase-wr"></canvas></div>
+        <div class="chart-container"><canvas id="chart-session-wr"></canvas></div>
+        <div class="chart-container"><canvas id="chart-checklist-scatter"></canvas></div>
+        <div class="chart-container"><canvas id="chart-r-dist"></canvas></div>
+      </div>
+    </div>
+    <div class="tab-content" id="journal-stats-2">
+      <div id="briefs-log"></div>
+      <div id="no-briefs" class="text-center" style="color:var(--text-dim);padding:20px;">No daily briefs saved yet.</div>
+    </div>
+  </div>
+
+  <div class="btn-group mt-12">
+    <button class="btn" onclick="exportCSV()">Export CSV</button>
+    <button class="btn" onclick="exportJSON()">Export JSON</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 6: RISK CALCULATOR — FIX 5C: presets
+     ═══════════════════════════════════════════ -->
+<div class="page" id="page-5">
+  <h2 class="page-title">🧮 Risk Calculator</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">Inputs</div>
+      <label class="label">Account Size ($)</label>
+      <input type="number" class="input mb-12" id="risk-account" step="any" oninput="calcRisk()" placeholder="e.g. 50000">
+      <label class="label">Risk Per Trade</label>
+      <div class="btn-group mb-12">
+        <button class="btn" onclick="setRiskPct(1)" data-val="1">1%</button>
+        <button class="btn" onclick="setRiskPct(2)" data-val="2">2%</button>
+        <button class="btn" onclick="setRiskPct(3)" data-val="3">3%</button>
+        <button class="btn" onclick="setRiskPct('custom')" data-val="custom">Custom</button>
+      </div>
+      <input type="number" class="input mb-12 hidden" id="risk-custom-pct" step="0.1" placeholder="Custom %" oninput="calcRisk()">
+      <input type="hidden" id="risk-pct-val" value="1">
+      <label class="label">Instrument Name (optional)</label>
+      <input class="input mb-12" id="risk-instrument" placeholder="e.g. NASDAQ" oninput="calcRisk()">
+      <label class="label">Entry Price</label>
+      <input type="number" class="input mb-12" id="risk-entry" step="any" oninput="calcRisk()">
+      <label class="label">Stop Loss Price</label>
+      <input type="number" class="input mb-12" id="risk-stop" step="any" oninput="calcRisk()">
+      <!-- FIX 5C: Quick Presets -->
+      <div class="preset-btns">
+        <button class="btn btn-sm" onclick="applyRiskPreset('NASDAQ')">NASDAQ Preset</button>
+        <button class="btn btn-sm" onclick="applyRiskPreset('Gold')">Gold Preset</button>
+        <button class="btn btn-sm" onclick="applyRiskPreset('BTC')">BTC Preset</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Outputs</div>
+      <div id="risk-outputs">
+        <div class="metric-card mb-12"><div class="metric-label">Stop Distance</div><div class="metric-value" id="ro-distance">--</div></div>
+        <div class="metric-card mb-12"><div class="metric-label">Dollar Amount at Risk</div><div class="metric-value" id="ro-dollar">--</div></div>
+        <div class="metric-card mb-12"><div class="metric-label">Position Size</div><div class="metric-value" id="ro-size">--</div></div>
+        <div class="grid-3 mb-12">
+          <div class="metric-card"><div class="metric-label">Target 1:2</div><div class="metric-value" style="font-size:16px" id="ro-t2">--</div></div>
+          <div class="metric-card"><div class="metric-label">Target 1:3</div><div class="metric-value" style="font-size:16px" id="ro-t3">--</div></div>
+          <div class="metric-card"><div class="metric-label">Target 1:5</div><div class="metric-value" style="font-size:16px" id="ro-t5">--</div></div>
+        </div>
+        <div class="metric-card mb-12"><div class="metric-label">Max Positions Before 10% Drawdown</div><div class="metric-value" id="ro-maxpos">--</div></div>
+      </div>
+      <div id="risk-warnings" class="mt-12"></div>
+      <div id="risk-instrument-note" class="mt-12" style="font-size:13px;color:var(--text-dim);padding:10px;background:var(--bg);border-radius:6px;"></div>
+      <button class="btn btn-amber mt-12" onclick="riskToJournal()">Log to Journal →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 7: SCI PLAYBOOK — FIX 5E: Quick Reference Card
+     ═══════════════════════════════════════════ -->
+<div class="page" id="page-6">
+  <h2 class="page-title">📚 SCI Playbook</h2>
+
+  <!-- FIX 5E: Permanent Quick Reference Card -->
+  <div class="quick-ref-card">
+    <h3>SCI Core Rules — Always On Screen</h3>
+    <div class="quick-ref-grid">
+      <div class="qr-item"><strong>HH + HL</strong> = BULL / UPTREND → <strong>LONG only</strong></div>
+      <div class="qr-item"><strong>LH + LL</strong> = BEAR / DOWNTREND → <strong>SHORT only</strong></div>
+      <div class="qr-item"><strong>Equal highs + equal lows</strong> = RANGE → <strong>STAY OUT</strong></div>
+      <div class="qr-item"><strong>London:</strong> 2AM–6AM EST | <strong>NY:</strong> 8:30AM–12PM EST</div>
+      <div class="qr-item">Minimum <strong>1:3 R/R</strong> on every trade</div>
+      <div class="qr-item">Stop <strong>BELOW</strong> swing low (longs) / <strong>ABOVE</strong> swing high (shorts)</div>
+      <div class="qr-item"><strong>NEVER</strong> enter the first breakout — wait for correction</div>
+      <div class="qr-item"><strong>NEVER</strong> trade the Asian session</div>
+    </div>
+  </div>
+
+  <input class="input mb-16" id="playbook-search" placeholder="Search playbook..." oninput="searchPlaybook()">
+  <div id="playbook-sections"></div>
+  <div class="card mt-16">
+    <div class="card-header">Suggest a Rule to Add</div>
+    <textarea class="input mb-12" id="playbook-new-rule" placeholder="Type your new rule idea..."></textarea>
+    <button class="btn btn-amber" onclick="suggestPlaybookRule()">Add to Playbook →</button>
+    <div id="playbook-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Formatting rule...</div>
+    <div id="playbook-suggestion" class="mt-12"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 8: SETTINGS — FIX 2: dual toggles, FIX 5D: AI status
+     ═══════════════════════════════════════════ -->
+<div class="page" id="page-7">
+  <h2 class="page-title">⚙️ Settings</h2>
+
+  <!-- FIX 5D: AI Status Indicator -->
+  <div class="ai-status-panel" id="ai-status-panel">
+    <div class="ai-status-item" id="ai-status-claude">🤖 Claude: <span>--</span></div>
+    <div class="ai-status-item" id="ai-status-openai">🤖 GPT-4o: <span>--</span></div>
+    <div class="ai-status-item" id="ai-status-dual">--</div>
+  </div>
+
+  <!-- AI Configuration — FIX 2: dual toggles instead of radio -->
+  <div class="card">
+    <div class="settings-group">
+      <h3>AI Configuration</h3>
+
+      <div class="ai-toggle-row">
+        <span class="ai-engine-name" style="color:var(--purple)">🤖 Claude (Anthropic)</span>
+        <div class="toggle-switch" onclick="toggleAIEngine('claude')">
+          <div class="toggle-track" id="toggle-claude"><div class="toggle-knob"></div></div>
+          <span id="toggle-claude-label" style="font-size:12px">ON</span>
+        </div>
+        <div class="password-wrap" style="flex:1">
+          <input type="password" class="input" id="set-anthropic-key" placeholder="sk-ant-...">
+          <button class="password-toggle" onclick="togglePw(this)">Show</button>
+          <button class="btn btn-sm" onclick="testAI('anthropic')">Test →</button>
+        </div>
+      </div>
+
+      <div class="ai-toggle-row">
+        <span class="ai-engine-name" style="color:var(--green)">🤖 GPT-4o (OpenAI)</span>
+        <div class="toggle-switch" onclick="toggleAIEngine('openai')">
+          <div class="toggle-track" id="toggle-openai"><div class="toggle-knob"></div></div>
+          <span id="toggle-openai-label" style="font-size:12px">ON</span>
+        </div>
+        <div class="password-wrap" style="flex:1">
+          <input type="password" class="input" id="set-openai-key" placeholder="sk-...">
+          <button class="password-toggle" onclick="togglePw(this)">Show</button>
+          <button class="btn btn-sm" onclick="testAI('openai')">Test →</button>
+        </div>
+      </div>
+
+      <div class="setting-row" style="flex-direction:column;align-items:stretch;margin-top:16px">
+        <label>AI System Prompt</label>
+        <textarea class="input" id="set-system-prompt" rows="12"></textarea>
+        <button class="btn btn-sm mt-8" onclick="resetSystemPrompt()">Reset to Default Prompt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Defaults -->
+  <div class="card">
+    <div class="settings-group">
+      <h3>Account Defaults</h3>
+      <div class="setting-row">
+        <label>Default Account Size ($)</label>
+        <input type="number" class="input" id="set-account" style="max-width:200px" onchange="saveSettings()">
+      </div>
+      <div class="setting-row">
+        <label>Default Risk % Per Trade</label>
+        <input type="number" class="input" id="set-risk" style="max-width:100px" step="0.5" onchange="saveSettings()">
+      </div>
+      <div class="setting-row">
+        <label>Preferred Instruments</label>
+        <input class="input" id="set-instruments" placeholder="NASDAQ, Gold, BTC, EURUSD" onchange="saveSettings()">
+      </div>
+      <div class="setting-row">
+        <label>Timezone</label>
+        <input class="input" id="set-timezone" value="EST" style="max-width:100px" onchange="saveSettings()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Lona Agency Info -->
+  <div class="card">
+    <div class="settings-group">
+      <h3>Lona Agency</h3>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Lona Agency runs inside ChatGPT. Use Strategy Lab (page 4) to design strategies, export them to Lona for backtesting, then import results back here.</p>
+      <button class="btn" onclick="goPage(3)">Go to Strategy Lab →</button>
+    </div>
+  </div>
+
+  <!-- Data Management -->
+  <div class="card">
+    <div class="settings-group">
+      <h3>Data Management</h3>
+      <div id="storage-indicator" style="font-size:13px;color:var(--text-dim);margin-bottom:12px"></div>
+      <div class="btn-group">
+        <button class="btn" onclick="exportAllData()">Export All Data</button>
+        <button class="btn" onclick="document.getElementById('import-backup-file').click()">Import Backup</button>
+        <button class="btn" style="color:var(--red);border-color:var(--red)" onclick="clearAllData()">Clear All Data</button>
+        <input type="file" id="import-backup-file" accept=".json" style="display:none" onchange="importBackup(event)">
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #main -->
+
+<!-- Confirmation Modal -->
+<div id="confirm-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 id="confirm-title">Confirm</h3>
+    <p id="confirm-message" style="font-size:14px;color:var(--text-dim)"></p>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-amber" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SCI TRADING COMMAND CENTER — COMPLETE JAVASCRIPT (v2 with all fixes)
+   ═══════════════════════════════════════════════════════════════ */
+
+// ─────────────────────────────────────────────
+// DEFAULT SCI SYSTEM PROMPT
+// ─────────────────────────────────────────────
+const DEFAULT_SYSTEM_PROMPT = `You are an elite day trading assistant and market analyst trained exclusively on the Trades by SCI methodology — pure price action, no indicators. You help trade any instrument the user specifies, using TradingView charts.
+
+ICC METHOD (every valid trade requires all 3 phases in sequence):
+INDICATION: A swing high OR swing low is broken on 1H or 4H timeframe. This creates a new Higher High OR a new Lower Low. If it creates neither, it is NOT a valid indication. Indications ALWAYS create a new high or new low — if it is not making a new HH or new LL, it is NOT an indication. Indication only provides evidence that price CAN continue in the break direction. Must occur during London (2AM-6AM EST) or NY (8:30AM-12PM EST) session. Answers: What is the trend? Where is price going?
+CORRECTION: Price pulls back after the indication. Market hunts liquidity — trapping early breakout traders and late FOMO entries. Two groups get trapped: initial breakout traders who entered too early + late FOMO entries at the top/bottom. Market reverses to liquidate both groups, collecting their money before the next leg. Watch on 15M timeframe. Equal highs forming = still correcting, not ready. Correction can be large or subtle. Do NOT enter here.
+CONTINUATION: 15M or 5M shows a clear structure change confirming the move. Price returns above key level (longs) or below key level (shorts) WITH confirmation. Look for rejections at key levels as extra confirmation. The continuation phase IS the entry signal — this is the highest probability SCI setup. THIS is the only valid entry point.
+
+TREND/BIAS TERMINOLOGY (user may use either term — treat as identical):
+Bull = Uptrend | Bear = Downtrend | Range = Consolidation
+HH + HL = Bull/Uptrend → LONG bias only
+LH + LL = Bear/Downtrend → SHORT bias only
+Equal highs + equal lows = Range/Consolidation → STAY OUT completely
+
+TREND CHANGE SIGNALS:
+When price breaks the previous lower high in a downtrend = potential trend reversal to uptrend.
+When price breaks the previous higher low in an uptrend = potential trend reversal to downtrend.
+Price must maintain structure (lower highs in downtrend, higher highs in uptrend). Breaking that structure = open mind to new trend direction.
+Higher lows forming when expecting lower lows = buyers taking control.
+Extended price fighting at support/resistance levels often precedes breakouts.
+
+SWING LEVELS & MARKET STRUCTURE:
+Swing highs = seller concentration points (resistance) = highest points before price rejects and moves opposite.
+Swing lows = buyer concentration points (support) = lowest points before price bounces up.
+Anything above a swing low = potential bullishness. Anything below a swing high = potential bearishness.
+When price breaks above previous high = sellers at that level got "swept out" by stronger buyers. Market then moves to find next level of seller resistance.
+New swing highs create new support levels. New swing lows create new resistance levels.
+Market structure consists of swing highs and swing lows — these are the "building bricks" and clues for price direction. Nothing else needed.
+
+LIQUIDITY CONCEPTS:
+Liquidity = money the market "grabs" from trapped traders.
+Stop losses cluster at key levels, creating liquidity pools for market makers.
+Market needs money to break strong levels — consolidation accumulates that money, then explosive breakout follows.
+During corrections, market reverses to liquidate trapped traders (both breakout traders and FOMO entries), collecting their money before the next leg.
+News events can amplify liquidity grabs.
+
+CHART MARKUP RULES:
+Clear all existing chart levels and start fresh to avoid messy, overloaded charts.
+Only mark previous swing highs and swing lows from 1-3 trading sessions maximum.
+Turn on session indicators for London and New York sessions only.
+Count entire reaction zones as single swing highs/lows rather than marking every minor level.
+Use clean charts with minimal markings — gray boxes, circles, arrows, lines only. No indicators or chart patterns needed.
+
+TIMEFRAME HIERARCHY:
+4H: Primary trend. Major support/resistance. Weekly direction. (NEVER override)
+1H: Working timeframe. Swing identification. Daily setups. Mark up charts primarily on 1H or 4H.
+15M: Entry timing ONLY — never for structure or bias. Scale to 15M only during correction and continuation phases.
+5M: Fine-tune entry timing. Never use 5M structure for targets — use higher timeframe levels.
+Rule: 4H bull → only look for 1H bull setups → only take long 15M entries.
+All timeframes must correlate. Multiple timeframe alignment required: e.g. 4H bearish → 1H bearish → 15M bearish → 5M bearish.
+Morning routine: Start with 1H to mark key levels, identify buying/selling pressure locations.
+For NASDAQ/US30: consider using 4H/daily for markup due to wider moves.
+Look back only 3-4 days for relevant price action when marking levels.
+
+SESSION RULES:
+London 2AM-6AM EST: Initial indications, Gold, GBP pairs. London plays a massive role in GBP/GU trading with significant momentum.
+New York 8:30AM-12PM EST: PRIMARY session — all instruments active. Significantly stronger directional movement and volume than London.
+Asian session: AVOID — choppy, indecisive price action with no clear directional bias, low volume, fake moves, no institutional flow.
+Do not trade outside London or NY sessions.
+If indication happens during a session, that session typically pushes in that direction. Correction comes later in the day or the following day.
+Monday, Tuesday, and Friday patterns are particularly reliable for session setups.
+Maximum 2-hour trading windows for best volume/volatility.
+Avoid fake volume periods — end of session moves often reverse.
+NASDAQ specific: Consider 6-7 AM if trading out of session.
+
+ENTRY METHODOLOGY:
+NEVER enter on the initial breakout. Wait for correction first.
+Second attempt at a level is far more reliable than the first.
+This is NOT a break-and-retest strategy. The correct sequence is: break → reaction → correction → second push based on market structure.
+Look for reactions at specific levels rather than simple break-and-retest.
+Entry should come from where bullish/bearish momentum initially started.
+No waiting for candle close on higher timeframes — trust higher timeframe direction.
+Look for failed higher moves on 15M/5M to confirm entry. Confirm support/resistance level breaks.
+
+STOP LOSS RULES:
+Stop loss: BELOW previous swing low for longs / ABOVE previous swing high for shorts.
+Stop loss at level where next higher low (longs) or lower high (shorts) would form based on trend structure.
+Give trades room. No tight stops. Wide instruments (NASDAQ, crypto) need extra room.
+
+TARGET SELECTION & RISK/REWARD:
+Minimum 1:3 risk/reward on every trade. Often achieve 1:3 or 1:4 R/R.
+Target 1: Previous swing structure level / original indication level from 1H timeframe.
+Target 2: Next major support/resistance zone — the "final boss" (highest/lowest previous level). Avoid intermediate levels.
+Set "soft TPs" (TP1, TP2) rather than hard limit orders.
+Allow for slight resistance at target levels due to sellers/buyers.
+Don't usually trail stop losses — prefer taking profits at predetermined levels.
+
+TRADE MANAGEMENT:
+Turn day trades into swing trades when possible.
+Scale into positions, take partials same day, hold remainder long-term.
+Hold winning trades longer — one good trend trade can provide a month's worth of profits.
+Partial profit-taking at swing targets while holding core positions for larger moves.
+When price breaks above/below target levels, hold — use structure breaks to determine hold vs. exit.
+Monitor for structure formation that would invalidate your thesis. As long as price continues making lower highs (shorts) or higher lows (longs), maintain positions.
+
+NO-TRADE CONDITIONS (state clearly when these are present):
+- No valid indication on 1H or 4H
+- Equal highs AND equal lows simultaneously
+- Choppy, unclear structure on 4H or 1H
+- Asian session
+- First breakout attempt (before any correction)
+- High-impact news volatility
+- Price has a high and low with no indication ("no-trade zone" — do not trade between established swing high and swing low until structure breaks)
+
+INSTRUMENT-SPECIFIC GUIDANCE:
+Trade instruments with actual volume: Gold, NASDAQ, US30, Oil.
+Avoid low-volume pairs: AUD/NZD, CHF/JPY — not enough institutional flow.
+NASDAQ/NQ: Wide stops normal (100+ points). Most volatile. Best during NY session. Use 4H/daily for markup.
+Gold/XAU: Moderate stops. More predictable structure. Good in London + NY. Preference for NY session on 1H timeframe. Currently showing potential for 4,000 target by year-end.
+Bitcoin/BTC: Widest stops. Double your normal assumption. 24/7 but best during sessions.
+Forex (EUR/GBP/JPY): Pip-based. Verify pip value for your lot size. Best in London. London plays massive role in GBP trading.
+Take 6-7 trades per month maximum. Hold trades for multiple days when structure supports it.
+
+TRADING PSYCHOLOGY & DISCIPLINE:
+Patience is the edge. Wait for all 3 ICC phases.
+No FOMO entries. If you missed it, wait for the next setup.
+One good trade per day is enough.
+Common mistakes to avoid: FOMO on breakouts, greed driving premature entries, revenge trading after losses, taking too many trades (30+ per day/week).
+Don't sell Monday then look for buys Tuesday — stick with prevailing trend direction. Follow what's working rather than trying to be creative.
+Trust higher timeframe analysis over lower timeframe noise.
+Follow price action, don't predict. "I don't try to predict it. I just look for the clues."
+Simplicity over complexity — kindergarten-level simplicity can take traders further than complex systems.
+Set alerts on all key levels and potential trade setups. Step away from charts while waiting. Key to maintaining discipline and avoiding overtrading.
+Journal every trade — winners AND losers. Review your checklist BEFORE every trade, not after.
+Accept losses as part of the process. Focus on R, not dollars.
+
+CAPITAL & RISK MANAGEMENT:
+Under $1,000 account = tight space, focus on building capital first.
+$5,000-$10,000 = good working range for live trading.
+Under $500 has very slim success odds.
+Focus on consistent gains vs. explosive growth. Target replacing job income, not getting rich quick.
+
+ICC PHILOSOPHY:
+ICC stands for Indication-Correction-Continuation — pure market structure and price action.
+No indicators, no chart patterns, no ICT (Inner Circle Trader) components needed.
+Reaction-based trading: trade only reactions at key levels. Look for previous price reactions to repeat.
+Not predictive but reactive to market behavior.
+Clean charts with minimal markings only.
+
+WHEN ANALYZING ANY SETUP OR CHART, ALWAYS RETURN IN THIS FORMAT:
+1. SETUP VALIDITY: Valid / Weak / Invalid
+2. ICC PHASE: Current phase
+3. TREND ALIGNMENT: 4H trend + 1H trend — Aligned or Misaligned?
+4. SESSION: Active / Approaching / Outside
+5. R/R SCORE: 1–10 (10 = perfect SCI setup)
+6. ENTRY ZONE: Price area
+7. STOP LOSS: Price level + structural reason
+8. TARGET 1: Price level + structural reason
+9. TARGET 2: Price level
+10. WARNINGS: Any SCI rule violations
+11. FINAL VERDICT: TAKE / WAIT / SKIP — one direct sentence with the reason.
+
+Be direct. No hedging. If the setup is invalid, state exactly what must change.`;
+
+// ─────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────
+let currentPage = 0;
+let sidebarExpanded = false;
+
+function toggleSidebar() {
+  sidebarExpanded = !sidebarExpanded;
+  document.getElementById('sidebar').classList.toggle('expanded', sidebarExpanded);
+}
+
+function goPage(idx) {
+  currentPage = idx;
+  document.querySelectorAll('.page').forEach((p,i) => p.classList.toggle('active', i===idx));
+  document.querySelectorAll('.nav-item').forEach((n,i) => n.classList.toggle('active', i===idx));
+  document.querySelectorAll('.mob-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  if(idx===1) populateScanTable();
+  if(idx===4) renderJournal();
+  if(idx===5) calcRisk();
+  if(idx===6) renderPlaybook();
+  if(idx===7) loadSettings();
+}
+
+// ─────────────────────────────────────────────
+// TOAST NOTIFICATIONS
+// ─────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ─────────────────────────────────────────────
+// CONFIRMATION MODAL
+// ─────────────────────────────────────────────
+let confirmCallback = null;
+function showConfirm(title, message, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-message').textContent = message;
+  document.getElementById('confirm-modal').classList.remove('hidden');
+  confirmCallback = cb;
+  document.getElementById('confirm-ok').onclick = () => { closeConfirm(); if(confirmCallback) confirmCallback(); };
+}
+function closeConfirm() { document.getElementById('confirm-modal').classList.add('hidden'); confirmCallback=null; }
+
+// ─────────────────────────────────────────────
+// FIX 2: DUAL AI ENGINE — callAI() calls BOTH engines
+// ─────────────────────────────────────────────
+function getSystemPrompt() {
+  return localStorage.getItem('sci_system_prompt') || DEFAULT_SYSTEM_PROMPT;
+}
+
+function isClaudeEnabled() {
+  const v = localStorage.getItem('sci_claude_enabled');
+  return v === null ? true : v === 'true';
+}
+function isOpenAIEnabled() {
+  const v = localStorage.getItem('sci_openai_enabled');
+  return v === null ? true : v === 'true';
+}
+
+async function callClaudeRaw(userMessage, imageBase64, systemPrompt) {
+  const key = localStorage.getItem('sci_anthropic_key');
+  if(!key) throw new Error('Anthropic API key not set. Go to Settings.');
+  const contentArray = [];
+  if(imageBase64) contentArray.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:imageBase64 }});
+  contentArray.push({ type:'text', text:userMessage });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', signal: controller.signal,
+      headers:{ 'x-api-key':key, 'anthropic-version':'2023-06-01', 'Content-Type':'application/json',
+        'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1500, system:systemPrompt, messages:[{role:'user',content:contentArray}] })
+    });
+    clearTimeout(timer);
+    if(!res.ok) { const e = await res.text(); throw new Error('Anthropic API error: '+e); }
+    const data = await res.json();
+    return data.content[0].text;
+  } catch(e) { clearTimeout(timer); throw e; }
+}
+
+async function callOpenAIRaw(userMessage, imageBase64, systemPrompt) {
+  const key = localStorage.getItem('sci_openai_key');
+  if(!key) throw new Error('OpenAI API key not set. Go to Settings.');
+  const contentArray = [];
+  if(imageBase64) contentArray.push({ type:'image_url', image_url:{ url:'data:image/jpeg;base64,'+imageBase64 }});
+  contentArray.push({ type:'text', text:userMessage });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST', signal: controller.signal,
+      headers:{ 'Authorization':'Bearer '+key, 'Content-Type':'application/json' },
+      body: JSON.stringify({ model:'gpt-4o', messages:[{role:'system',content:systemPrompt},{role:'user',content:contentArray}] })
+    });
+    clearTimeout(timer);
+    if(!res.ok) { const e = await res.text(); throw new Error('OpenAI API error: '+e); }
+    const data = await res.json();
+    return data.choices[0].message.content;
+  } catch(e) { clearTimeout(timer); throw e; }
+}
+
+// Returns { claude: text|null, openai: text|null, claudeError: msg|null, openaiError: msg|null }
+async function callAI(userMessage, imageBase64=null, customSystem=null) {
+  const systemPrompt = customSystem || getSystemPrompt();
+  const claudeOn = isClaudeEnabled() && !!localStorage.getItem('sci_anthropic_key');
+  const openaiOn = isOpenAIEnabled() && !!localStorage.getItem('sci_openai_key');
+
+  if(!claudeOn && !openaiOn) throw new Error('No AI engine enabled with a valid key. Go to Settings.');
+
+  const promises = [];
+  const engines = [];
+
+  if(claudeOn) { promises.push(callClaudeRaw(userMessage, imageBase64, systemPrompt)); engines.push('claude'); }
+  if(openaiOn) { promises.push(callOpenAIRaw(userMessage, imageBase64, systemPrompt)); engines.push('openai'); }
+
+  const results = await Promise.allSettled(promises);
+  const out = { claude:null, openai:null, claudeError:null, openaiError:null };
+
+  results.forEach((r, i) => {
+    const eng = engines[i];
+    if(r.status === 'fulfilled') out[eng] = r.value;
+    else out[eng+'Error'] = r.reason?.message || 'Unknown error';
+  });
+
+  return out;
+}
+
+// Helper: render dual AI result panels
+function renderDualResult(result) {
+  const hasClaude = result.claude || result.claudeError;
+  const hasOpenai = result.openai || result.openaiError;
+  const bothPresent = hasClaude && hasOpenai;
+
+  let html = '<div class="dual-ai-panels">';
+
+  if(hasClaude) {
+    html += `<div class="ai-panel ${bothPresent?'':'full-width'}">
+      <div class="ai-panel-header claude">🤖 CLAUDE</div>
+      <div class="ai-panel-body">${result.claude ? escHtml(result.claude) : `<span class="ai-panel-error">Error: ${escHtml(result.claudeError)}</span>`}</div>
+      <div class="ai-panel-footer">Powered by Anthropic</div>
+    </div>`;
+  }
+  if(hasOpenai) {
+    html += `<div class="ai-panel ${bothPresent?'':'full-width'}">
+      <div class="ai-panel-header openai">🤖 GPT-4o</div>
+      <div class="ai-panel-body">${result.openai ? escHtml(result.openai) : `<span class="ai-panel-error">Error: ${escHtml(result.openaiError)}</span>`}</div>
+      <div class="ai-panel-footer">Powered by OpenAI</div>
+    </div>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// Helper: get first available text from dual result
+function getFirstText(result) {
+  return result.claude || result.openai || '';
+}
+
+// ─────────────────────────────────────────────
+// BUTTON GROUP HELPER
+// ─────────────────────────────────────────────
+function setManualBtn(btn, hiddenId, activeClass) {
+  const ac = activeClass || 'active-amber';
+  btn.parentElement.querySelectorAll('.btn').forEach(b => { b.className = 'btn'; if(b.dataset && b.dataset.val) b.className = 'btn'; });
+  btn.classList.add(ac);
+  document.getElementById(hiddenId).value = btn.dataset.val;
+}
+
+// ─────────────────────────────────────────────
+// FIX 1: STATUS BAR — Two permanent session rows + Golden Windows
+// ─────────────────────────────────────────────
+function updateStatusBar() {
+  const now = new Date();
+  const est = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const h = est.getHours(), m = est.getMinutes(), s = est.getSeconds();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  document.getElementById('clock').textContent =
+    String(h12).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0') + ' ' + ampm + ' EST';
+
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('date-display').textContent =
+    days[est.getDay()] + ', ' + months[est.getMonth()] + ' ' + est.getDate() + ', ' + est.getFullYear();
+
+  const totalMin = h * 60 + m;
+  const londonStart = 2*60, londonEnd = 6*60;
+  const nyStart = 8*60+30, nyEnd = 12*60;
+  const londonGoldenStart = 2*60, londonGoldenEnd = 3*60+30;
+  const nyGoldenStart = 8*60+30, nyGoldenEnd = 10*60;
+
+  // --- LONDON ROW ---
+  const londonRow = document.getElementById('london-row');
+  const londonBadge = document.getElementById('london-badge');
+  const londonCountdown = document.getElementById('london-countdown');
+  const londonGolden = document.getElementById('london-golden');
+
+  if(totalMin >= londonStart && totalMin < londonEnd) {
+    londonBadge.textContent = 'OPEN';
+    londonBadge.className = 'session-status-badge status-open-london';
+    const rem = londonEnd - totalMin;
+    londonCountdown.textContent = `Closes in ${Math.floor(rem/60)}h ${rem%60}m`;
+    londonRow.classList.add('ny-open'); // reuse glow style
+    londonRow.style.borderColor = 'var(--blue)';
+    londonRow.style.boxShadow = '0 0 12px rgba(59,130,246,0.2)';
+  } else {
+    londonBadge.textContent = 'CLOSED';
+    londonBadge.className = 'session-status-badge status-closed';
+    londonRow.style.borderColor = ''; londonRow.style.boxShadow = '';
+    if(totalMin < londonStart) {
+      const rem = londonStart - totalMin;
+      londonCountdown.textContent = `Opens in ${Math.floor(rem/60)}h ${rem%60}m`;
+    } else {
+      const rem = (24*60 - totalMin) + londonStart;
+      londonCountdown.textContent = `Opens in ${Math.floor(rem/60)}h ${rem%60}m`;
+    }
+  }
+
+  // London Golden Window
+  if(totalMin >= londonGoldenStart && totalMin < londonGoldenEnd) {
+    londonGolden.innerHTML = '<span class="golden-now">⚡ GOLDEN WINDOW — PRIME TIME NOW</span>';
+    londonRow.classList.add('golden-active');
+  } else if(totalMin >= londonGoldenEnd && totalMin < londonEnd) {
+    londonGolden.innerHTML = '<span class="golden-passed">⚡ Golden Window ✓ passed — session continues (lower probability)</span>';
+    londonRow.classList.remove('golden-active');
+  } else if(totalMin < londonGoldenStart && (londonGoldenStart - totalMin) <= 30) {
+    const rem = londonGoldenStart - totalMin;
+    londonGolden.innerHTML = `<span class="golden-soon">⚡ Golden Window opens in ${rem}m — Get ready</span>`;
+    londonRow.classList.remove('golden-active');
+  } else {
+    let rem;
+    if(totalMin < londonGoldenStart) rem = londonGoldenStart - totalMin;
+    else rem = (24*60 - totalMin) + londonGoldenStart;
+    londonGolden.innerHTML = `<span class="golden-waiting">⚡ Golden Window in ${Math.floor(rem/60)}h ${rem%60}m</span>`;
+    londonRow.classList.remove('golden-active');
+  }
+
+  // --- NY ROW ---
+  const nyRow = document.getElementById('ny-row');
+  const nyBadge = document.getElementById('ny-badge');
+  const nyCountdown = document.getElementById('ny-countdown');
+  const nyGolden = document.getElementById('ny-golden');
+
+  if(totalMin >= nyStart && totalMin < nyEnd) {
+    nyBadge.textContent = 'OPEN';
+    nyBadge.className = 'session-status-badge status-open-ny';
+    const rem = nyEnd - totalMin;
+    nyCountdown.textContent = `Closes in ${Math.floor(rem/60)}h ${rem%60}m`;
+    nyRow.classList.add('ny-open');
+  } else {
+    nyBadge.textContent = 'CLOSED';
+    nyBadge.className = 'session-status-badge status-closed';
+    nyRow.classList.remove('ny-open');
+    if(totalMin < nyStart) {
+      const rem = nyStart - totalMin;
+      nyCountdown.textContent = `Opens in ${Math.floor(rem/60)}h ${rem%60}m`;
+    } else {
+      const rem = (24*60 - totalMin) + nyStart;
+      nyCountdown.textContent = `Opens in ${Math.floor(rem/60)}h ${rem%60}m`;
+    }
+  }
+
+  // NY Golden Window
+  if(totalMin >= nyGoldenStart && totalMin < nyGoldenEnd) {
+    nyGolden.innerHTML = '<span class="golden-now">⚡ GOLDEN WINDOW — PRIME TIME NOW</span>';
+    nyRow.classList.add('golden-active');
+  } else if(totalMin >= nyGoldenEnd && totalMin < nyEnd) {
+    nyGolden.innerHTML = '<span class="golden-passed">⚡ Golden Window ✓ passed — session continues (lower probability)</span>';
+    nyRow.classList.remove('golden-active');
+  } else if(totalMin < nyGoldenStart && (nyGoldenStart - totalMin) <= 30) {
+    const rem = nyGoldenStart - totalMin;
+    nyGolden.innerHTML = `<span class="golden-soon">⚡ Golden Window opens in ${rem}m — Get ready</span>`;
+    nyRow.classList.remove('golden-active');
+  } else {
+    let rem;
+    if(totalMin < nyGoldenStart) rem = nyGoldenStart - totalMin;
+    else rem = (24*60 - totalMin) + nyGoldenStart;
+    nyGolden.innerHTML = `<span class="golden-waiting">⚡ Golden Window in ${Math.floor(rem/60)}h ${rem%60}m</span>`;
+    nyRow.classList.remove('golden-active');
+  }
+}
+setInterval(updateStatusBar, 1000);
+updateStatusBar();
+
+// ─────────────────────────────────────────────
+// PAGE 1: INSTRUMENT CARDS — FIX 5F: green glow when active
+// ─────────────────────────────────────────────
+const defaultInstruments = [
+  { name:'NASDAQ', trend:'', icc:'', active:false, notes:'', updated:'' },
+  { name:'Gold (XAUUSD)', trend:'', icc:'', active:false, notes:'', updated:'' },
+  { name:'Bitcoin (BTC)', trend:'', icc:'', active:false, notes:'', updated:'' },
+  { name:'Forex (EURUSD)', trend:'', icc:'', active:false, notes:'', updated:'' }
+];
+
+function getInstruments() {
+  const saved = localStorage.getItem('sci_instruments');
+  return saved ? JSON.parse(saved) : [...defaultInstruments];
+}
+function saveInstruments(instruments) {
+  localStorage.setItem('sci_instruments', JSON.stringify(instruments));
+}
+
+function renderInstruments() {
+  const instruments = getInstruments();
+  const grid = document.getElementById('instruments-grid');
+  grid.innerHTML = '';
+  instruments.forEach((inst, idx) => {
+    const card = document.createElement('div');
+    card.className = 'instrument-card' + (inst.active ? ' active-setup' : '');
+    card.draggable = true;
+    card.dataset.idx = idx;
+    card.ondragstart = e => { e.dataTransfer.setData('text/plain', idx); card.classList.add('dragging'); };
+    card.ondragend = () => card.classList.remove('dragging');
+    card.ondragover = e => e.preventDefault();
+    card.ondrop = e => { e.preventDefault(); reorderInstrument(parseInt(e.dataTransfer.getData('text/plain')), idx); };
+
+    const trendBtns = [
+      {label:'BULL / UPTREND ▲', val:'BULL', cls:'active-green'},
+      {label:'BEAR / DOWNTREND ▼', val:'BEAR', cls:'active-red'},
+      {label:'RANGE / CONSOLIDATION ◆', val:'RANGE', cls:'active-yellow'}
+    ];
+    const iccBtns = [
+      {label:'INDICATION', val:'INDICATION', cls:'active-blue'},
+      {label:'CORRECTION', val:'CORRECTION', cls:'active-orange'},
+      {label:'CONTINUATION', val:'CONTINUATION', cls:'active-green'},
+      {label:'NO SETUP', val:'NO SETUP', cls:'active-gray'}
+    ];
+
+    card.innerHTML = `
+      <input class="instrument-name" value="${escHtml(inst.name)}"
+        onchange="updateInstrumentField(${idx},'name',this.value)">
+      <button class="instrument-delete" onclick="deleteInstrument(${idx})" title="Delete">&times;</button>
+      <div class="instrument-section">
+        <div class="label">Trend</div>
+        <div class="btn-group">
+          ${trendBtns.map(b => `<button class="btn btn-sm ${inst.trend===b.val?b.cls:''}" onclick="updateInstrumentField(${idx},'trend','${b.val}');renderInstruments()">${b.label}</button>`).join('')}
+        </div>
+      </div>
+      <div class="instrument-section">
+        <div class="label">ICC Phase</div>
+        <div class="btn-group">
+          ${iccBtns.map(b => `<button class="btn btn-sm ${inst.icc===b.val?b.cls:''}" onclick="updateInstrumentField(${idx},'icc','${b.val}');renderInstruments()">${b.label}</button>`).join('')}
+        </div>
+      </div>
+      <div class="instrument-section">
+        <div class="label">Active Setup</div>
+        <div class="toggle-switch" onclick="toggleInstrumentActive(${idx})">
+          <div class="toggle-track ${inst.active?'on':''}"><div class="toggle-knob"></div></div>
+          <span style="font-size:13px;font-weight:600;color:${inst.active?'var(--green)':'var(--text-dim)'}">${inst.active?'YES':'NO'}</span>
+        </div>
+      </div>
+      <div class="instrument-section">
+        <textarea class="input" placeholder="Quick notes..." style="min-height:40px;font-size:12px"
+          oninput="updateInstrumentField(${idx},'notes',this.value)">${escHtml(inst.notes||'')}</textarea>
+      </div>
+      <div class="updated-time">Last updated: ${inst.updated || 'Never'}</div>
+    `;
+    grid.appendChild(card);
+  });
+  updateNoTradeDetector();
+}
+
+function updateInstrumentField(idx, field, value) {
+  const instruments = getInstruments();
+  if(instruments[idx]) {
+    instruments[idx][field] = value;
+    instruments[idx].updated = new Date().toLocaleString('en-US', {timeZone:'America/New_York'});
+    saveInstruments(instruments);
+    if(field !== 'notes') renderInstruments();
+  }
+}
+function toggleInstrumentActive(idx) {
+  const instruments = getInstruments();
+  instruments[idx].active = !instruments[idx].active;
+  instruments[idx].updated = new Date().toLocaleString('en-US', {timeZone:'America/New_York'});
+  saveInstruments(instruments);
+  renderInstruments();
+}
+function addInstrument() {
+  const instruments = getInstruments();
+  instruments.push({ name:'New Instrument', trend:'', icc:'', active:false, notes:'', updated:'' });
+  saveInstruments(instruments);
+  renderInstruments();
+  showToast('Instrument added');
+}
+function deleteInstrument(idx) {
+  const instruments = getInstruments();
+  showConfirm('Delete Instrument', `Delete "${instruments[idx].name}"?`, () => {
+    instruments.splice(idx, 1);
+    saveInstruments(instruments);
+    renderInstruments();
+    showToast('Instrument deleted');
+  });
+}
+function reorderInstrument(from, to) {
+  if(from === to) return;
+  const instruments = getInstruments();
+  const item = instruments.splice(from, 1)[0];
+  instruments.splice(to, 0, item);
+  saveInstruments(instruments);
+  renderInstruments();
+}
+
+// ─────────────────────────────────────────────
+// PAGE 1: PRE-TRADE CHECKLIST
+// ─────────────────────────────────────────────
+const checklistItems = [
+  '4H bias is clearly Bull/Uptrend OR Bear/Downtrend — not ranging/choppy',
+  '1H structure aligns with my 4H bias direction',
+  'Valid indication exists — a swing high OR swing low was BROKEN on 1H or 4H creating a new HH or new LL',
+  'I am NOT entering the first breakout — correction has already happened',
+  'I am inside London session (2AM–6AM EST) or NY session (8:30AM–12PM EST)',
+  'This is the SECOND attempt at the level — first attempt already failed',
+  'Stop loss is placed BELOW the swing low (for longs) or ABOVE swing high (for shorts)',
+  'Risk/Reward is at least 1:3 — confirmed in Risk Calculator',
+  'No equal highs AND equal lows simultaneously on 1H (indecision = no trade)',
+  '15M chart shows a clear structure change confirming continuation direction'
+];
+
+function getChecklistKey() {
+  const est = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  return 'sci_checklist_' + est.getFullYear() + '-' + String(est.getMonth()+1).padStart(2,'0') + '-' + String(est.getDate()).padStart(2,'0');
+}
+
+function renderChecklist() {
+  const key = getChecklistKey();
+  const saved = JSON.parse(localStorage.getItem(key) || '[]');
+  const dateStr = key.replace('sci_checklist_','');
+  document.getElementById('checklist-date').textContent = dateStr;
+
+  const container = document.getElementById('checklist-items');
+  container.innerHTML = '';
+  checklistItems.forEach((text, i) => {
+    const div = document.createElement('div');
+    div.className = 'checklist-item';
+    div.innerHTML = `<input type="checkbox" ${saved[i]?'checked':''} onchange="toggleChecklist(${i},this.checked)">
+      <span>${i+1}. ${text}</span>`;
+    container.appendChild(div);
+  });
+  updateChecklistScore();
+}
+
+function toggleChecklist(idx, checked) {
+  const key = getChecklistKey();
+  const saved = JSON.parse(localStorage.getItem(key) || '[]');
+  saved[idx] = checked;
+  localStorage.setItem(key, JSON.stringify(saved));
+  updateChecklistScore();
+}
+
+function updateChecklistScore() {
+  const key = getChecklistKey();
+  const saved = JSON.parse(localStorage.getItem(key) || '[]');
+  const score = saved.filter(Boolean).length;
+  document.getElementById('checklist-score').textContent = score + ' / 10';
+  const banner = document.getElementById('checklist-banner');
+  if(score >= 8) {
+    banner.innerHTML = '<div class="score-banner score-green">STRONG SETUP — CONSIDER ENTRY</div>';
+  } else if(score >= 5) {
+    banner.innerHTML = '<div class="score-banner score-yellow">WEAK SETUP — WAIT FOR MORE CONFIRMATION</div>';
+  } else {
+    banner.innerHTML = '<div class="score-banner score-red">SKIP — NOT A VALID SCI SETUP</div>';
+  }
+}
+
+// ─────────────────────────────────────────────
+// FIX 5A: NO-TRADE ZONE DETECTOR
+// ─────────────────────────────────────────────
+function updateNoTradeDetector() {
+  const wrap = document.getElementById('no-trade-detector-wrap');
+  const instruments = getInstruments();
+  const est = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const totalMin = est.getHours() * 60 + est.getMinutes();
+  const londonStart = 2*60, londonEnd = 6*60, nyStart = 8*60+30, nyEnd = 12*60;
+  const inSession = (totalMin >= londonStart && totalMin < londonEnd) || (totalMin >= nyStart && totalMin < nyEnd);
+
+  const flags = [];
+
+  instruments.forEach(inst => {
+    if(inst.trend === 'RANGE' && (inst.icc === 'NO SETUP' || !inst.icc)) {
+      flags.push(`${inst.name}: RANGE trend with NO SETUP`);
+    }
+    if((inst.notes||'').toLowerCase().includes('equal high')) {
+      flags.push(`${inst.name}: "equal highs" noted`);
+    }
+  });
+
+  if(!inSession) {
+    flags.push('Currently OUTSIDE active trading session');
+  }
+
+  if(flags.length) {
+    wrap.innerHTML = `<div class="no-trade-detector warning">
+      <div style="font-weight:700;margin-bottom:6px">NO-TRADE CONDITIONS DETECTED:</div>
+      <ul style="margin:0;padding-left:20px;font-size:13px">${flags.map(f => `<li>${escHtml(f)}</li>`).join('')}</ul>
+    </div>`;
+  } else {
+    wrap.innerHTML = '<div class="no-trade-detector clear">No no-trade conditions detected</div>';
+  }
+}
+setInterval(updateNoTradeDetector, 60000);
+
+// ─────────────────────────────────────────────
+// PAGE 1: QUICK AI CHAT — FIX 2: dual responses
+// ─────────────────────────────────────────────
+let quickChatHistory = [];
+
+async function sendQuickChat() {
+  const input = document.getElementById('quick-chat-input');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = '';
+
+  const time = new Date().toLocaleTimeString('en-US', {timeZone:'America/New_York', hour:'2-digit', minute:'2-digit'});
+  quickChatHistory.push({ role:'user', text:msg, time });
+  renderQuickChat();
+
+  try {
+    const result = await callAI(msg);
+    const time2 = new Date().toLocaleTimeString('en-US', {timeZone:'America/New_York', hour:'2-digit', minute:'2-digit'});
+    if(result.claude) quickChatHistory.push({ role:'ai-claude', text:result.claude, time:time2 });
+    if(result.claudeError) quickChatHistory.push({ role:'ai-claude', text:'Error: '+result.claudeError, time:time2 });
+    if(result.openai) quickChatHistory.push({ role:'ai-openai', text:result.openai, time:time2 });
+    if(result.openaiError) quickChatHistory.push({ role:'ai-openai', text:'Error: '+result.openaiError, time:time2 });
+  } catch(e) {
+    quickChatHistory.push({ role:'ai-claude', text:'Error: '+e.message, time: new Date().toLocaleTimeString('en-US', {timeZone:'America/New_York', hour:'2-digit', minute:'2-digit'}) });
+    showToast('Error: '+e.message, 'error');
+  }
+  if(quickChatHistory.length > 20) quickChatHistory = quickChatHistory.slice(-20);
+  renderQuickChat();
+}
+
+function renderQuickChat() {
+  const container = document.getElementById('quick-chat-messages');
+  container.innerHTML = quickChatHistory.map(m =>
+    `<div class="chat-msg ${m.role}">${m.role==='ai-claude'?'<strong>🤖 Claude:</strong> ':''}${m.role==='ai-openai'?'<strong>🤖 GPT-4o:</strong> ':''}${escHtml(m.text)}<span class="chat-time">${m.time}</span></div>`
+  ).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+// ─────────────────────────────────────────────
+// PAGE 2: MARKET SCANNER — FIX 2: dual AI results
+// ─────────────────────────────────────────────
+let scanCharts = {};
+
+function populateScanTable() {
+  const instruments = getInstruments();
+  const tbody = document.getElementById('scan-table-body');
+  tbody.innerHTML = '';
+  const patternSelect = document.getElementById('pattern-instrument');
+  patternSelect.innerHTML = '<option value="">-- Select --</option>';
+
+  instruments.forEach((inst, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600;color:var(--amber)">${escHtml(inst.name)}</td>
+      <td><span class="badge ${inst.trend==='BULL'?'badge-green':inst.trend==='BEAR'?'badge-red':'badge-yellow'}">${inst.trend||'--'}</span></td>
+      <td><span class="badge ${inst.icc==='INDICATION'?'badge-blue':inst.icc==='CORRECTION'?'badge-yellow':inst.icc==='CONTINUATION'?'badge-green':'badge-purple'}">${inst.icc||'--'}</span></td>
+      <td><input type="file" accept="image/*" class="input" style="padding:3px;font-size:11px;max-width:140px" onchange="handleScanChart(${i},event)"></td>
+      <td><input class="input" style="font-size:11px;max-width:160px" placeholder="Notes..." id="scan-note-${i}"></td>
+    `;
+    tbody.appendChild(tr);
+    patternSelect.innerHTML += `<option value="${escHtml(inst.name)}">${escHtml(inst.name)}</option>`;
+  });
+}
+
+function handleScanChart(idx, event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { scanCharts[idx] = e.target.result.split(',')[1]; };
+  reader.readAsDataURL(file);
+}
+
+async function runFullScan() {
+  const instruments = getInstruments();
+  if(!instruments.length) { showToast('No instruments configured','error'); return; }
+
+  document.getElementById('scan-loading').classList.remove('hidden');
+  document.getElementById('scan-results').innerHTML = '';
+
+  let prompt = 'Analyze the following instruments for trading opportunities using SCI methodology. For EACH instrument, provide: Setup Rating (STRONG/MODERATE/WEAK/NO SETUP), current phase assessment, bias alignment, session fit, R/R Score (1-10), and a one-line verdict. Rank them from best to worst opportunity.\n\n';
+
+  instruments.forEach((inst, i) => {
+    prompt += `INSTRUMENT ${i+1}: ${inst.name}\n`;
+    prompt += `  Trend: ${inst.trend || 'Not set'}\n`;
+    prompt += `  ICC Phase: ${inst.icc || 'Not set'}\n`;
+    const noteEl = document.getElementById('scan-note-'+i);
+    if(noteEl && noteEl.value) prompt += `  Notes: ${noteEl.value}\n`;
+    prompt += '\n';
+  });
+
+  try {
+    let img = null;
+    for(const k in scanCharts) { img = scanCharts[k]; break; }
+    const result = await callAI(prompt, img);
+    document.getElementById('scan-results').innerHTML = renderDualResult(result);
+    showToast('Scan complete!');
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+    document.getElementById('scan-results').innerHTML = `<div class="result-card" style="color:var(--red)">${escHtml(e.message)}</div>`;
+  }
+  document.getElementById('scan-loading').classList.add('hidden');
+}
+
+async function identifyPattern() {
+  const instrument = document.getElementById('pattern-instrument').value;
+  const description = document.getElementById('pattern-description').value.trim();
+  if(!description) { showToast('Please describe what you see','error'); return; }
+
+  document.getElementById('pattern-loading').classList.remove('hidden');
+  document.getElementById('pattern-result').innerHTML = '';
+
+  let img = null;
+  const fileInput = document.getElementById('pattern-screenshot');
+  if(fileInput.files[0]) {
+    img = await fileToBase64(fileInput.files[0]);
+  }
+
+  const prompt = `Identify the pattern I'm seeing on ${instrument || 'this chart'} using SCI terminology.\n\nDescription: ${description}\n\nReturn:\n1. Pattern name in SCI terminology\n2. What this means for the trade\n3. What to watch for next\n4. Recommended action: Wait / Look for entry / Avoid`;
+
+  try {
+    const result = await callAI(prompt, img);
+    document.getElementById('pattern-result').innerHTML = renderDualResult(result);
+    showToast('Pattern identified!');
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+  }
+  document.getElementById('pattern-loading').classList.add('hidden');
+}
+
+async function generateBrief() {
+  const asian = document.getElementById('brief-asian').value.trim();
+  const levels = document.getElementById('brief-levels').value.trim();
+  const instruments = getInstruments();
+
+  document.getElementById('brief-loading').classList.remove('hidden');
+  document.getElementById('brief-result').innerHTML = '';
+
+  let prompt = `Generate today's pre-market brief using SCI methodology.\n\nCurrent instruments:\n`;
+  instruments.forEach(inst => {
+    prompt += `- ${inst.name}: Trend=${inst.trend||'Not set'}, ICC=${inst.icc||'Not set'}, Active=${inst.active?'Yes':'No'}\n`;
+  });
+  if(asian) prompt += `\nAsian session notes: ${asian}`;
+  if(levels) prompt += `\nKey levels: ${levels}`;
+  prompt += `\n\nReturn structured brief with:\n1. Overall market bias today\n2. Top instrument/opportunity\n3. Key levels across instruments\n4. Session to focus on\n5. What to avoid today\n6. One-paragraph SCI outlook`;
+
+  try {
+    const result = await callAI(prompt);
+    const dateStr = new Date().toLocaleDateString('en-US', {timeZone:'America/New_York'});
+    document.getElementById('brief-result').innerHTML = `
+      <div class="result-card">
+        ${renderDualResult(result)}
+        <button class="btn btn-amber btn-sm mt-12" onclick="saveBrief('${escHtml(dateStr)}',this)">Save Brief to Journal</button>
+      </div>`;
+    showToast('Brief generated!');
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+  }
+  document.getElementById('brief-loading').classList.add('hidden');
+}
+
+function saveBrief(date, btn) {
+  const briefs = JSON.parse(localStorage.getItem('sci_daily_briefs') || '[]');
+  const text = btn.parentElement.querySelector('.ai-panel-body')?.textContent || btn.parentElement.textContent;
+  briefs.unshift({ date, text, savedAt: new Date().toISOString() });
+  localStorage.setItem('sci_daily_briefs', JSON.stringify(briefs));
+  showToast('Brief saved to journal!');
+  btn.textContent = 'Saved ✓';
+  btn.disabled = true;
+}
+
+// ─────────────────────────────────────────────
+// PAGE 3: ANALYZE TRADE — FIX 2: dual AI results
+// ─────────────────────────────────────────────
+let screenshotBase64 = null;
+
+function switchAnalyzeTab(idx) {
+  document.querySelectorAll('#page-2 .tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  document.querySelectorAll('#page-2 .tab-content').forEach((c,i) => c.classList.toggle('active', i===idx));
+}
+
+function handleScreenshotDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(file) loadScreenshot(file);
+}
+function handleScreenshotSelect(e) {
+  const file = e.target.files[0];
+  if(file) loadScreenshot(file);
+}
+function loadScreenshot(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    screenshotBase64 = e.target.result.split(',')[1];
+    const preview = document.getElementById('screenshot-preview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyzeScreenshot() {
+  if(!screenshotBase64) { showToast('Please upload a screenshot first','error'); return; }
+  const notes = document.getElementById('screenshot-notes').value.trim();
+
+  document.getElementById('screenshot-loading').classList.remove('hidden');
+  document.getElementById('screenshot-result').innerHTML = '';
+
+  const prompt = `Analyze this trading chart screenshot using the SCI methodology. ${notes ? 'Context: ' + notes : ''}\n\nProvide your full analysis in the standard SCI format.`;
+
+  try {
+    const result = await callAI(prompt, screenshotBase64);
+    document.getElementById('screenshot-result').innerHTML = buildAnalysisResult(result);
+    showToast('Analysis complete!');
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+  }
+  document.getElementById('screenshot-loading').classList.add('hidden');
+}
+
+async function analyzeManual() {
+  const data = {
+    instrument: document.getElementById('manual-instrument').value,
+    direction: document.getElementById('manual-dir').value,
+    bias4h: document.getElementById('manual-4h').value,
+    bias1h: document.getElementById('manual-1h').value,
+    icc: document.getElementById('manual-icc').value,
+    session: document.getElementById('manual-session').value,
+    swingHigh: document.getElementById('manual-sh').value,
+    swingLow: document.getElementById('manual-sl').value,
+    entry: document.getElementById('manual-entry').value,
+    stop: document.getElementById('manual-stop').value,
+    target: document.getElementById('manual-target').value,
+    equalHighs: document.getElementById('manual-eqh').value,
+    equalLows: document.getElementById('manual-eql').value,
+    attempt: document.getElementById('manual-attempt').value,
+    notes: document.getElementById('manual-notes').value
+  };
+
+  document.getElementById('manual-loading').classList.remove('hidden');
+  document.getElementById('manual-result').innerHTML = '';
+
+  const prompt = `Analyze this trade setup using SCI methodology:
+Instrument: ${data.instrument}
+Direction: ${data.direction}
+4H Bias: ${data.bias4h}
+1H Structure: ${data.bias1h}
+Current ICC Phase: ${data.icc}
+Active Session: ${data.session}
+Swing High: ${data.swingHigh}
+Swing Low: ${data.swingLow}
+Entry Price: ${data.entry}
+Stop Loss: ${data.stop}
+Target: ${data.target}
+Equal Highs Present: ${data.equalHighs}
+Equal Lows Present: ${data.equalLows}
+Attempt at Level: ${data.attempt}
+Notes: ${data.notes}
+
+Provide your full analysis in the standard SCI format.`;
+
+  try {
+    const result = await callAI(prompt);
+    document.getElementById('manual-result').innerHTML = buildAnalysisResult(result);
+    showToast('Analysis complete!');
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+  }
+  document.getElementById('manual-loading').classList.add('hidden');
+}
+
+function buildAnalysisResult(result) {
+  return `<div class="result-card">
+    ${renderDualResult(result)}
+    <div class="btn-group mt-12">
+      <button class="btn btn-sm" onclick="saveAnalysisToJournal(this)">Save to Journal</button>
+      <button class="btn btn-sm" onclick="askFollowUp(this)">Ask follow-up</button>
+      <button class="btn btn-sm" onclick="goPage(3)">Send to Strategy Lab</button>
+    </div>
+  </div>`;
+}
+
+function saveAnalysisToJournal(btn) {
+  const text = btn.closest('.result-card').querySelector('.ai-panel-body')?.textContent || '';
+  goPage(4);
+  document.getElementById('log-trade-form').classList.remove('hidden');
+  document.getElementById('trade-notes').value = text.substring(0, 500);
+  showToast('Analysis copied to journal form');
+}
+
+async function askFollowUp(btn) {
+  const context = btn.closest('.result-card').querySelector('.ai-panel-body')?.textContent || '';
+  const question = prompt('Ask a follow-up question about this analysis:');
+  if(!question) return;
+  try {
+    const result = await callAI(`Previous analysis:\n${context}\n\nFollow-up question: ${question}`);
+    const newCard = document.createElement('div');
+    newCard.className = 'result-card mt-12';
+    newCard.innerHTML = `<div class="label">Follow-up Answer:</div>${renderDualResult(result)}`;
+    btn.closest('.result-card').after(newCard);
+    showToast('Follow-up answered!');
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+  }
+}
+
+// CSV Import
+let csvData = [];
+function handleCSVDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(file) parseCSV(file);
+}
+function handleCSVSelect(e) {
+  const file = e.target.files[0];
+  if(file) parseCSV(file);
+}
+
+function parseCSV(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const rows = parseCSVText(text);
+    if(rows.length < 2) { showToast('CSV appears empty','error'); return; }
+    csvData = rows;
+    renderCSVPreview();
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVText(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  for(let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if(inQuotes) {
+      if(c === '"') {
+        if(text[i+1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else {
+        field += c;
+      }
+    } else {
+      if(c === '"') { inQuotes = true; }
+      else if(c === ',') { row.push(field.trim()); field = ''; }
+      else if(c === '\n' || c === '\r') {
+        if(c === '\r' && text[i+1] === '\n') i++;
+        row.push(field.trim());
+        if(row.some(f => f)) rows.push(row);
+        row = []; field = '';
+      } else {
+        field += c;
+      }
+    }
+  }
+  row.push(field.trim());
+  if(row.some(f => f)) rows.push(row);
+  return rows;
+}
+
+function renderCSVPreview() {
+  if(!csvData.length) return;
+  const headers = csvData[0];
+  const dataRows = csvData.slice(1);
+  let html = `<div class="card"><div class="card-header">CSV Preview — ${dataRows.length} trades found</div>`;
+  html += '<table class="data-table"><thead><tr>' + headers.map(h => `<th>${escHtml(h)}</th>`).join('') + '</tr></thead><tbody>';
+  dataRows.slice(0, 20).forEach(row => {
+    html += '<tr>' + row.map(c => `<td>${escHtml(c)}</td>`).join('') + '</tr>';
+  });
+  html += '</tbody></table>';
+  if(dataRows.length > 20) html += `<div style="color:var(--text-dim);font-size:12px;padding:8px">Showing first 20 of ${dataRows.length} rows</div>`;
+  html += `<button class="btn btn-amber mt-12" onclick="importCSVToJournal()">Import ${dataRows.length} trades to Journal</button></div>`;
+  document.getElementById('csv-preview').innerHTML = html;
+}
+
+function importCSVToJournal() {
+  if(!csvData.length) return;
+  const headers = csvData[0].map(h => h.toLowerCase());
+  const trades = JSON.parse(localStorage.getItem('sci_trades') || '[]');
+  const dataRows = csvData.slice(1);
+
+  dataRows.forEach(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i] || '');
+    trades.push({
+      id: Date.now() + Math.random(),
+      date: obj.date || new Date().toISOString(),
+      instrument: obj.symbol || obj.instrument || '',
+      dir: (obj.type || obj.direction || '').toUpperCase().includes('BUY') ? 'LONG' : 'SHORT',
+      entry: parseFloat(obj.price || obj.entry || 0),
+      stop: 0, t1: 0, t2: 0, t1hit: '',
+      exit: parseFloat(obj.exit || 0),
+      result: parseFloat(obj['p&l'] || obj.pnl || 0) > 0 ? 'WIN' : parseFloat(obj['p&l'] || obj.pnl || 0) < 0 ? 'LOSS' : 'BREAKEVEN',
+      r: 0, phase: '', session: '', strategy: 'CSV Import', score: 0,
+      notes: `Imported from CSV. Qty: ${obj.qty || ''}, P&L: ${obj['p&l'] || obj.pnl || ''}`,
+      screenshot: null
+    });
+  });
+
+  localStorage.setItem('sci_trades', JSON.stringify(trades));
+  showToast(`${dataRows.length} trades imported!`);
+  goPage(4);
+}
+
+// ─────────────────────────────────────────────
+// PAGE 4: STRATEGY LAB — FIX 2: dual AI, FIX 3: descriptions in HTML
+// ─────────────────────────────────────────────
+function selectStrategyType(card, type) {
+  document.querySelectorAll('.strategy-type-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  document.getElementById('strategy-type-val').value = type;
+  document.getElementById('strategy-form').classList.remove('hidden');
+
+  const instruments = getInstruments();
+  const container = document.getElementById('strat-instruments');
+  container.innerHTML = instruments.map(inst =>
+    `<label class="btn btn-sm" style="cursor:pointer"><input type="checkbox" value="${escHtml(inst.name)}" style="margin-right:4px"> ${escHtml(inst.name)}</label>`
+  ).join('');
+}
+
+async function generateStrategy() {
+  const type = document.getElementById('strategy-type-val').value;
+  const name = document.getElementById('strat-name').value;
+  const instruments = Array.from(document.querySelectorAll('#strat-instruments input:checked')).map(c => c.value);
+  const tf = document.getElementById('strat-tf').value;
+  const trigger = document.getElementById('strat-trigger').value;
+  const stop = document.getElementById('strat-stop').value;
+  const t1 = document.getElementById('strat-t1').value;
+  const t2 = document.getElementById('strat-t2').value;
+  const session = document.getElementById('strat-session').value;
+  const risk = document.getElementById('strat-risk').value;
+  const notes = document.getElementById('strat-notes').value;
+
+  document.getElementById('strat-loading').classList.remove('hidden');
+  document.getElementById('strat-result').innerHTML = '';
+
+  const prompt = `Generate a complete trading strategy using SCI methodology:
+Type: ${type}
+Name: ${name || type}
+Instruments: ${instruments.join(', ') || 'All'}
+Timeframe Bias: ${tf}
+Entry Trigger: ${trigger}
+Stop Placement: ${stop}
+Target 1: ${t1}
+Target 2: ${t2}
+Session: ${session}
+Risk: ${risk}
+Notes: ${notes}
+
+Return a formatted strategy card with:
+1. Strategy name + concept
+2. Full entry conditions (numbered list)
+3. Exact entry trigger
+4. Stop loss rule
+5. Target 1 + Target 2 rules
+6. Trade management instructions
+7. Invalidation conditions
+8. Best instruments + sessions
+9. Expected R/R range`;
+
+  try {
+    const result = await callAI(prompt);
+    const safeName = escHtml(name||type).replace(/'/g,"\\'");
+    const safeType = escHtml(type).replace(/'/g,"\\'");
+    const safeInstr = escHtml(instruments.join(', ')).replace(/'/g,"\\'");
+    document.getElementById('strat-result').innerHTML = `
+      <div class="result-card">
+        ${renderDualResult(result)}
+        <div class="btn-group mt-12">
+          <button class="btn btn-sm btn-amber" onclick="saveStrategy('${safeName}','${safeType}','${safeInstr}',this)">Save Strategy</button>
+          <button class="btn btn-sm" onclick="exportForLona(this)">Export for Lona Agency</button>
+          <button class="btn btn-sm" onclick="addToPlaybook(this)">Add to Playbook</button>
+        </div>
+      </div>`;
+    showToast('Strategy generated!');
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+  }
+  document.getElementById('strat-loading').classList.add('hidden');
+}
+
+function saveStrategy(name, type, instruments, btn) {
+  const strategies = JSON.parse(localStorage.getItem('sci_strategies') || '[]');
+  const text = btn.closest('.result-card').querySelector('.ai-panel-body')?.textContent || btn.closest('.result-card').textContent;
+  strategies.push({
+    id: Date.now(), name, type, instruments,
+    rules: text,
+    created: new Date().toISOString(),
+    timesUsed: 0, lonaResults: null
+  });
+  localStorage.setItem('sci_strategies', JSON.stringify(strategies));
+  renderSavedStrategies();
+  showToast('Strategy saved!');
+}
+
+function renderSavedStrategies() {
+  const strategies = JSON.parse(localStorage.getItem('sci_strategies') || '[]');
+  const container = document.getElementById('saved-strategies');
+  const noStrat = document.getElementById('no-strategies');
+
+  if(!strategies.length) { container.innerHTML = ''; noStrat.classList.remove('hidden'); return; }
+  noStrat.classList.add('hidden');
+
+  container.innerHTML = strategies.map((s, i) => `
+    <div class="card" style="cursor:pointer" onclick="this.querySelector('.strat-details').classList.toggle('hidden')">
+      <div style="font-weight:700;color:var(--purple)">${escHtml(s.name)}</div>
+      <span class="badge badge-purple">${escHtml(s.type)}</span>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:4px">${escHtml(s.instruments || 'All')} | Created: ${new Date(s.created).toLocaleDateString()}</div>
+      <div class="strat-details hidden" style="margin-top:12px;white-space:pre-wrap;font-size:12px;line-height:1.6">${escHtml(s.rules)}</div>
+      <div class="btn-group mt-8" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" onclick="deleteStrategy(${i})">Delete</button>
+      </div>
+    </div>
+  `).join('');
+
+  updateStrategyDropdowns();
+}
+
+function deleteStrategy(idx) {
+  showConfirm('Delete Strategy', 'Are you sure?', () => {
+    const strategies = JSON.parse(localStorage.getItem('sci_strategies') || '[]');
+    strategies.splice(idx, 1);
+    localStorage.setItem('sci_strategies', JSON.stringify(strategies));
+    renderSavedStrategies();
+    showToast('Strategy deleted');
+  });
+}
+
+function updateStrategyDropdowns() {
+  const strategies = JSON.parse(localStorage.getItem('sci_strategies') || '[]');
+  const lonaSelect = document.getElementById('lona-strategy-select');
+  const tradeSelect = document.getElementById('trade-strategy');
+
+  lonaSelect.innerHTML = '<option value="">-- Select --</option>' +
+    strategies.map((s,i) => `<option value="${i}">${escHtml(s.name)}</option>`).join('');
+
+  tradeSelect.innerHTML = '<option value="Manual SCI">Manual SCI</option>' +
+    strategies.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
+}
+
+function generateLonaPrompt() {
+  const idx = document.getElementById('lona-strategy-select').value;
+  if(idx === '') { document.getElementById('lona-prompt-wrap').classList.add('hidden'); return; }
+  const strategies = JSON.parse(localStorage.getItem('sci_strategies') || '[]');
+  const s = strategies[idx];
+  const prompt = `Backtest the following trading strategy using historical data:\n\nStrategy: ${s.name}\nType: ${s.type}\nInstruments: ${s.instruments}\n\nRules:\n${s.rules}\n\nPlease test across at least 50 trades and provide:\n- Win rate\n- Average R multiple\n- Maximum drawdown\n- Best performing instrument\n- Best performing session\n- Equity curve description\n- Recommendations for improvement`;
+  document.getElementById('lona-prompt').value = prompt;
+  document.getElementById('lona-prompt-wrap').classList.remove('hidden');
+}
+
+function exportForLona(btn) {
+  const text = btn.closest('.result-card').querySelector('.ai-panel-body')?.textContent || '';
+  navigator.clipboard.writeText(`Backtest this strategy:\n\n${text}`);
+  showToast('Strategy copied for Lona Agency!');
+}
+
+function addToPlaybook(btn) {
+  const text = btn.closest('.result-card').querySelector('.ai-panel-body')?.textContent || '';
+  const playbook = JSON.parse(localStorage.getItem('sci_playbook_custom') || '[]');
+  playbook.push({ text, added: new Date().toISOString() });
+  localStorage.setItem('sci_playbook_custom', JSON.stringify(playbook));
+  showToast('Added to Playbook!');
+}
+
+async function processLonaResults() {
+  const results = document.getElementById('lona-results').value.trim();
+  if(!results) { showToast('Paste Lona results first','error'); return; }
+
+  document.getElementById('lona-loading').classList.remove('hidden');
+  try {
+    const result = await callAI(`Summarize these backtesting results from Lona Agency and provide key insights:\n\n${results}`);
+    document.getElementById('lona-result-display').innerHTML = `<div class="result-card">${renderDualResult(result)}</div>`;
+    showToast('Results processed!');
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+  }
+  document.getElementById('lona-loading').classList.add('hidden');
+}
+
+// ─────────────────────────────────────────────
+// PAGE 5: TRADE JOURNAL — FIX 2: dual AI review, FIX 4: column names
+// ─────────────────────────────────────────────
+let journalSort = { field:'date', asc:false };
+
+function saveTrade() {
+  const trade = {
+    id: Date.now(),
+    date: document.getElementById('trade-datetime').value || new Date().toISOString(),
+    instrument: document.getElementById('trade-instrument').value,
+    dir: document.getElementById('trade-dir').value,
+    entry: parseFloat(document.getElementById('trade-entry').value) || 0,
+    stop: parseFloat(document.getElementById('trade-stop').value) || 0,
+    t1: parseFloat(document.getElementById('trade-t1').value) || 0,
+    t2: parseFloat(document.getElementById('trade-t2').value) || 0,
+    t1hit: document.getElementById('trade-t1hit').value,
+    exit: parseFloat(document.getElementById('trade-exit').value) || 0,
+    result: document.getElementById('trade-result').value,
+    r: parseFloat(document.getElementById('trade-r').value) || 0,
+    phase: document.getElementById('trade-phase').value,
+    session: document.getElementById('trade-session').value,
+    strategy: document.getElementById('trade-strategy').value,
+    score: parseInt(document.getElementById('trade-score').value),
+    notes: document.getElementById('trade-notes').value,
+    screenshot: null
+  };
+
+  const ssFile = document.getElementById('trade-screenshot').files[0];
+  if(ssFile) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      trade.screenshot = e.target.result;
+      finishSaveTrade(trade);
+    };
+    reader.readAsDataURL(ssFile);
+  } else {
+    finishSaveTrade(trade);
+  }
+}
+
+function finishSaveTrade(trade) {
+  const trades = JSON.parse(localStorage.getItem('sci_trades') || '[]');
+  trades.push(trade);
+  localStorage.setItem('sci_trades', JSON.stringify(trades));
+  showToast('Trade saved!');
+  renderJournal();
+  document.getElementById('log-trade-form').classList.add('hidden');
+}
+
+async function aiReviewTrade() {
+  const notes = document.getElementById('trade-notes').value;
+  const instrument = document.getElementById('trade-instrument').value;
+  const dir = document.getElementById('trade-dir').value;
+  const result = document.getElementById('trade-result').value;
+  const phase = document.getElementById('trade-phase').value;
+
+  const prompt = `Brief SCI critique of this trade:\nInstrument: ${instrument}\nDirection: ${dir}\nResult: ${result}\nICC Phase: ${phase}\nNotes: ${notes}\n\nProvide a 2-3 sentence SCI methodology review. What was done right? What could improve?`;
+
+  try {
+    const aiResult = await callAI(prompt);
+    document.getElementById('trade-ai-review').innerHTML = `<div class="result-card">${renderDualResult(aiResult)}</div>`;
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+  }
+}
+
+function sortJournal(field) {
+  if(journalSort.field === field) journalSort.asc = !journalSort.asc;
+  else { journalSort.field = field; journalSort.asc = true; }
+  renderJournal();
+}
+
+function renderJournal() {
+  let trades = JSON.parse(localStorage.getItem('sci_trades') || '[]');
+  const noTrades = document.getElementById('no-trades');
+
+  const fi = document.getElementById('filter-instrument').value;
+  const fm = document.getElementById('filter-month').value;
+  const fr = document.getElementById('filter-result').value;
+  const fs = document.getElementById('filter-strategy').value;
+  const fse = document.getElementById('filter-session').value;
+  const search = document.getElementById('filter-search').value.toLowerCase();
+
+  if(fi) trades = trades.filter(t => t.instrument === fi);
+  if(fm) trades = trades.filter(t => (t.date||'').substring(0,7) === fm);
+  if(fr) trades = trades.filter(t => t.result === fr);
+  if(fs) trades = trades.filter(t => t.strategy === fs);
+  if(fse) trades = trades.filter(t => t.session === fse);
+  if(search) trades = trades.filter(t => (t.notes||'').toLowerCase().includes(search));
+
+  trades.sort((a,b) => {
+    let va = a[journalSort.field], vb = b[journalSort.field];
+    if(typeof va === 'string') va = va.toLowerCase();
+    if(typeof vb === 'string') vb = vb.toLowerCase();
+    if(va < vb) return journalSort.asc ? -1 : 1;
+    if(va > vb) return journalSort.asc ? 1 : -1;
+    return 0;
+  });
+
+  if(!trades.length) { noTrades.classList.remove('hidden'); } else { noTrades.classList.add('hidden'); }
+
+  const tbody = document.getElementById('journal-body');
+  tbody.innerHTML = trades.map((t, i) => `
+    <tr onclick="this.nextElementSibling.classList.toggle('hidden')" style="cursor:pointer">
+      <td>${escHtml((t.date||'').substring(0,10))}</td>
+      <td style="color:var(--amber)">${escHtml(t.instrument)}</td>
+      <td><span class="badge ${t.dir==='LONG'?'badge-green':'badge-red'}">${t.dir}</span></td>
+      <td>${t.entry}</td>
+      <td>${t.exit}</td>
+      <td style="color:${t.r>0?'var(--green)':t.r<0?'var(--red)':'var(--text-dim)'}; font-weight:700">${t.r>0?'+':''}${t.r}R</td>
+      <td><span class="badge badge-blue">${t.phase||'--'}</span></td>
+      <td>${escHtml(t.strategy||'')}</td>
+      <td>${t.score}/10</td>
+      <td>${escHtml(t.session||'')}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml((t.notes||'').substring(0,40))}</td>
+    </tr>
+    <tr class="hidden"><td colspan="11" style="padding:16px;background:var(--bg)">
+      <div class="grid-2">
+        <div>
+          <strong>Full Details:</strong><br>
+          Stop: ${t.stop} | T1: ${t.t1} | T2: ${t.t2}<br>
+          T1 Hit: ${t.t1hit} | Session: ${t.session}<br>
+          <br><strong>Notes:</strong><br>${escHtml(t.notes||'None')}
+        </div>
+        <div>
+          ${t.screenshot ? `<img src="${t.screenshot}" style="max-height:200px;border-radius:8px">` : '<span style="color:var(--text-dim)">No screenshot</span>'}
+        </div>
+      </div>
+      <button class="btn btn-sm mt-8" style="color:var(--red)" onclick="deleteTrade(${t.id})">Delete Trade</button>
+    </td></tr>
+  `).join('');
+
+  const allTrades = JSON.parse(localStorage.getItem('sci_trades') || '[]');
+  updateFilterDropdowns(allTrades);
+  renderStats(allTrades);
+  renderBriefsLog();
+}
+
+function deleteTrade(id) {
+  showConfirm('Delete Trade', 'Are you sure?', () => {
+    let trades = JSON.parse(localStorage.getItem('sci_trades') || '[]');
+    trades = trades.filter(t => t.id !== id);
+    localStorage.setItem('sci_trades', JSON.stringify(trades));
+    renderJournal();
+    showToast('Trade deleted');
+  });
+}
+
+function updateFilterDropdowns(trades) {
+  const instruments = [...new Set(trades.map(t => t.instrument).filter(Boolean))];
+  const months = [...new Set(trades.map(t => (t.date||'').substring(0,7)).filter(Boolean))];
+  const strategies = [...new Set(trades.map(t => t.strategy).filter(Boolean))];
+
+  const fi = document.getElementById('filter-instrument');
+  const currentFi = fi.value;
+  fi.innerHTML = '<option value="">All Instruments</option>' + instruments.map(i => `<option ${i===currentFi?'selected':''}>${escHtml(i)}</option>`).join('');
+
+  const fm = document.getElementById('filter-month');
+  const currentFm = fm.value;
+  fm.innerHTML = '<option value="">All Months</option>' + months.map(m => `<option ${m===currentFm?'selected':''}>${m}</option>`).join('');
+
+  const fs = document.getElementById('filter-strategy');
+  const currentFs = fs.value;
+  fs.innerHTML = '<option value="">All Strategies</option>' + strategies.map(s => `<option ${s===currentFs?'selected':''}>${escHtml(s)}</option>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// JOURNAL STATS & CHARTS — FIX 5F: Total R color
+// ─────────────────────────────────────────────
+let chartInstances = {};
+
+function renderStats(trades) {
+  if(!trades.length) {
+    document.getElementById('stats-metrics').innerHTML = '<div style="color:var(--text-dim);text-align:center;grid-column:1/-1;padding:20px">No trades to analyze</div>';
+    return;
+  }
+
+  const wins = trades.filter(t => t.result === 'WIN').length;
+  const losses = trades.filter(t => t.result === 'LOSS').length;
+  const total = trades.length;
+  const winRate = total ? ((wins/total)*100).toFixed(1) : 0;
+  const lossRate = total ? ((losses/total)*100).toFixed(1) : 0;
+  const rValues = trades.map(t => t.r || 0);
+  const avgR = (rValues.reduce((a,b)=>a+b,0) / total).toFixed(2);
+  const totalR = rValues.reduce((a,b)=>a+b,0).toFixed(2);
+  const bestR = Math.max(...rValues).toFixed(2);
+  const worstR = Math.min(...rValues).toFixed(2);
+
+  document.getElementById('stats-metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-value">${total}</div><div class="metric-label">Total Trades</div></div>
+    <div class="metric-card"><div class="metric-value" style="color:var(--green)">${winRate}%</div><div class="metric-label">Win Rate</div></div>
+    <div class="metric-card"><div class="metric-value" style="color:var(--red)">${lossRate}%</div><div class="metric-label">Loss Rate</div></div>
+    <div class="metric-card"><div class="metric-value">${avgR}R</div><div class="metric-label">Avg R</div></div>
+    <div class="metric-card"><div class="metric-value" style="color:${totalR>=0?'var(--green)':'var(--red)'}; font-size:32px">${totalR>=0?'+':''}${totalR}R</div><div class="metric-label">Total R</div></div>
+    <div class="metric-card"><div class="metric-value" style="color:var(--green)">+${bestR}R</div><div class="metric-label">Best Trade</div></div>
+    <div class="metric-card"><div class="metric-value" style="color:var(--red)">${worstR}R</div><div class="metric-label">Worst Trade</div></div>
+  `;
+
+  renderJournalCharts(trades);
+}
+
+function renderJournalCharts(trades) {
+  Object.values(chartInstances).forEach(c => { if(c) c.destroy(); });
+  chartInstances = {};
+
+  const cc = { bg:'#111318', amber:'#d4a017', green:'#22c55e', red:'#ef4444', blue:'#3b82f6', purple:'#a78bfa', yellow:'#eab308', teal:'#2dd4bf' };
+
+  // 1. Equity Curve
+  const sortedTrades = [...trades].sort((a,b) => new Date(a.date) - new Date(b.date));
+  let cumR = 0;
+  const equityData = sortedTrades.map(t => { cumR += (t.r||0); return cumR; });
+  const equityLabels = sortedTrades.map((t,i) => i+1);
+
+  chartInstances.equity = new Chart(document.getElementById('chart-equity'), {
+    type:'line',
+    data:{ labels:equityLabels, datasets:[{ label:'Cumulative R', data:equityData, borderColor:cc.amber, backgroundColor:'rgba(212,160,23,0.1)', fill:true, tension:0.3 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#94a3b8'}}}, scales:{ x:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'}}, y:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'}} } }
+  });
+
+  // 2. Win rate by instrument
+  const instrumentGroups = {};
+  trades.forEach(t => {
+    if(!t.instrument) return;
+    if(!instrumentGroups[t.instrument]) instrumentGroups[t.instrument] = {wins:0,total:0};
+    instrumentGroups[t.instrument].total++;
+    if(t.result==='WIN') instrumentGroups[t.instrument].wins++;
+  });
+  chartInstances.instrWR = new Chart(document.getElementById('chart-instrument-wr'), {
+    type:'bar',
+    data:{ labels:Object.keys(instrumentGroups), datasets:[{ label:'Win Rate %', data:Object.values(instrumentGroups).map(g => ((g.wins/g.total)*100).toFixed(1)), backgroundColor:cc.teal }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#94a3b8'}}}, scales:{ x:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'}}, y:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'},max:100} } }
+  });
+
+  // 3. Win rate by ICC phase
+  const phaseGroups = {};
+  trades.forEach(t => {
+    if(!t.phase) return;
+    if(!phaseGroups[t.phase]) phaseGroups[t.phase] = {wins:0,total:0};
+    phaseGroups[t.phase].total++;
+    if(t.result==='WIN') phaseGroups[t.phase].wins++;
+  });
+  chartInstances.phaseWR = new Chart(document.getElementById('chart-phase-wr'), {
+    type:'bar',
+    data:{ labels:Object.keys(phaseGroups), datasets:[{ label:'Win Rate %', data:Object.values(phaseGroups).map(g => ((g.wins/g.total)*100).toFixed(1)), backgroundColor:[cc.blue, cc.yellow, cc.green] }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#94a3b8'}}}, scales:{ x:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'}}, y:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'},max:100} } }
+  });
+
+  // 4. Win rate by session
+  const sessionGroups = {};
+  trades.forEach(t => {
+    if(!t.session) return;
+    if(!sessionGroups[t.session]) sessionGroups[t.session] = {wins:0,total:0};
+    sessionGroups[t.session].total++;
+    if(t.result==='WIN') sessionGroups[t.session].wins++;
+  });
+  chartInstances.sessionWR = new Chart(document.getElementById('chart-session-wr'), {
+    type:'bar',
+    data:{ labels:Object.keys(sessionGroups), datasets:[{ label:'Win Rate %', data:Object.values(sessionGroups).map(g => ((g.wins/g.total)*100).toFixed(1)), backgroundColor:[cc.blue, cc.green] }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#94a3b8'}}}, scales:{ x:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'}}, y:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'},max:100} } }
+  });
+
+  // 5. Checklist score vs result scatter
+  const scatterData = trades.map(t => ({ x:t.score||0, y:t.r||0 }));
+  chartInstances.scatter = new Chart(document.getElementById('chart-checklist-scatter'), {
+    type:'scatter',
+    data:{ datasets:[{ label:'Score vs R', data:scatterData, backgroundColor: trades.map(t => t.r>=0 ? cc.green : cc.red), pointRadius:6 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#94a3b8'}}}, scales:{ x:{title:{display:true,text:'Checklist Score',color:'#94a3b8'},ticks:{color:'#94a3b8'},grid:{color:'#1e2330'},min:0,max:10}, y:{title:{display:true,text:'R Multiple',color:'#94a3b8'},ticks:{color:'#94a3b8'},grid:{color:'#1e2330'}} } }
+  });
+
+  // 6. R distribution histogram
+  const rBuckets = {};
+  trades.forEach(t => {
+    const bucket = Math.round(t.r || 0);
+    rBuckets[bucket] = (rBuckets[bucket]||0) + 1;
+  });
+  const sortedBuckets = Object.keys(rBuckets).sort((a,b)=>a-b);
+  chartInstances.rDist = new Chart(document.getElementById('chart-r-dist'), {
+    type:'bar',
+    data:{ labels:sortedBuckets.map(b => b+'R'), datasets:[{ label:'Trades', data:sortedBuckets.map(b => rBuckets[b]), backgroundColor:sortedBuckets.map(b => b>=0 ? cc.green : cc.red) }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#94a3b8'}}}, scales:{ x:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'}}, y:{ticks:{color:'#94a3b8'},grid:{color:'#1e2330'}} } }
+  });
+}
+
+function switchJournalTab(idx) {
+  document.querySelectorAll('#page-4 .tabs .tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  for(let i=0;i<3;i++) document.getElementById('journal-stats-'+i).classList.toggle('active', i===idx);
+}
+
+function renderBriefsLog() {
+  const briefs = JSON.parse(localStorage.getItem('sci_daily_briefs') || '[]');
+  const container = document.getElementById('briefs-log');
+  const noBriefs = document.getElementById('no-briefs');
+  if(!briefs.length) { container.innerHTML = ''; noBriefs.classList.remove('hidden'); return; }
+  noBriefs.classList.add('hidden');
+  container.innerHTML = briefs.map(b => `
+    <div class="card mb-12">
+      <div style="font-weight:600;color:var(--amber);margin-bottom:8px">${escHtml(b.date)}</div>
+      <div style="white-space:pre-wrap;font-size:13px;line-height:1.6">${escHtml(b.text)}</div>
+    </div>
+  `).join('');
+}
+
+// Export
+function exportCSV() {
+  const trades = JSON.parse(localStorage.getItem('sci_trades') || '[]');
+  if(!trades.length) { showToast('No trades to export','error'); return; }
+  const headers = ['Date','Instrument','Direction','Entry','Stop','T1','T2','Exit','Result','R','Phase','Session','Strategy','Score','Notes'];
+  const rows = trades.map(t => [t.date,t.instrument,t.dir,t.entry,t.stop,t.t1,t.t2,t.exit,t.result,t.r,t.phase,t.session,t.strategy,t.score,`"${(t.notes||'').replace(/"/g,'""')}"`]);
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  downloadFile(csv, 'sci_trades.csv', 'text/csv');
+  showToast('CSV exported!');
+}
+
+function exportJSON() {
+  const trades = JSON.parse(localStorage.getItem('sci_trades') || '[]');
+  downloadFile(JSON.stringify(trades, null, 2), 'sci_trades.json', 'application/json');
+  showToast('JSON exported!');
+}
+
+// ─────────────────────────────────────────────
+// PAGE 6: RISK CALCULATOR — FIX 5C: presets
+// ─────────────────────────────────────────────
+function setRiskPct(val) {
+  document.querySelectorAll('#page-5 .btn-group .btn').forEach(b => b.className = 'btn');
+  if(val === 'custom') {
+    document.getElementById('risk-custom-pct').classList.remove('hidden');
+    document.querySelectorAll('#page-5 .btn-group .btn')[3].classList.add('active-amber');
+  } else {
+    document.getElementById('risk-custom-pct').classList.add('hidden');
+    document.getElementById('risk-pct-val').value = val;
+    document.querySelectorAll('#page-5 .btn-group .btn').forEach(b => {
+      if(b.dataset.val == val) b.classList.add('active-amber');
+    });
+    calcRisk();
+  }
+  localStorage.setItem('sci_risk_pct', val);
+}
+
+function calcRisk() {
+  const account = parseFloat(document.getElementById('risk-account').value) || 0;
+  const customPct = parseFloat(document.getElementById('risk-custom-pct').value);
+  let pct = parseFloat(document.getElementById('risk-pct-val').value) || 1;
+  if(!document.getElementById('risk-custom-pct').classList.contains('hidden') && customPct) {
+    pct = customPct;
+    document.getElementById('risk-pct-val').value = pct;
+  }
+  const entry = parseFloat(document.getElementById('risk-entry').value) || 0;
+  const stop = parseFloat(document.getElementById('risk-stop').value) || 0;
+  const instrumentName = document.getElementById('risk-instrument').value.toLowerCase();
+
+  localStorage.setItem('sci_risk_inputs', JSON.stringify({ account, pct, entry, stop, instrumentName }));
+
+  if(!account || !entry || !stop) return;
+
+  const stopDist = Math.abs(entry - stop);
+  const stopPct = ((stopDist / entry) * 100).toFixed(2);
+  const dollarRisk = (account * pct / 100);
+  const posSize = stopDist > 0 ? (dollarRisk / stopDist).toFixed(2) : 0;
+  const isLong = entry > stop;
+
+  const t2Price = isLong ? entry + stopDist * 2 : entry - stopDist * 2;
+  const t3Price = isLong ? entry + stopDist * 3 : entry - stopDist * 3;
+  const t5Price = isLong ? entry + stopDist * 5 : entry - stopDist * 5;
+
+  document.getElementById('ro-distance').textContent = stopDist.toFixed(2) + ' pts / ' + stopPct + '%';
+  document.getElementById('ro-dollar').textContent = '$' + dollarRisk.toFixed(2);
+  document.getElementById('ro-size').textContent = posSize + ' units';
+  document.getElementById('ro-t2').innerHTML = t2Price.toFixed(2) + '<br><span style="font-size:11px;color:var(--green)">+$' + (dollarRisk*2).toFixed(2) + '</span>';
+  document.getElementById('ro-t3').innerHTML = t3Price.toFixed(2) + '<br><span style="font-size:11px;color:var(--green)">+$' + (dollarRisk*3).toFixed(2) + '</span>';
+  document.getElementById('ro-t5').innerHTML = t5Price.toFixed(2) + '<br><span style="font-size:11px;color:var(--green)">+$' + (dollarRisk*5).toFixed(2) + '</span>';
+
+  const maxPos = dollarRisk > 0 ? Math.floor((account * 0.1) / dollarRisk) : 0;
+  document.getElementById('ro-maxpos').textContent = maxPos;
+
+  const warnings = document.getElementById('risk-warnings');
+  warnings.innerHTML = '';
+  if(pct > 5) {
+    warnings.innerHTML = '<div class="score-banner score-red">HIGH RISK — account ruin danger</div>';
+  } else if(pct > 2) {
+    warnings.innerHTML = '<div class="score-banner score-yellow">SCI recommends max 2% per trade</div>';
+  }
+
+  const noteEl = document.getElementById('risk-instrument-note');
+  if(instrumentName.includes('nasdaq') || instrumentName.includes('nq')) {
+    noteEl.textContent = 'NASDAQ/NQ: Wide stops normal (100+ points). Do not tighten.';
+  } else if(instrumentName.includes('gold') || instrumentName.includes('xau')) {
+    noteEl.textContent = 'Gold/XAU: Moderate stops. More predictable structure.';
+  } else if(instrumentName.includes('bitcoin') || instrumentName.includes('btc') || instrumentName.includes('crypto')) {
+    noteEl.textContent = 'Bitcoin/BTC/Crypto: Widest stops. Double your normal assumption.';
+  } else if(instrumentName.includes('forex') || instrumentName.includes('eur') || instrumentName.includes('gbp') || instrumentName.includes('jpy')) {
+    noteEl.textContent = 'Forex: Pip-based. Verify pip value for your lot size.';
+  } else if(instrumentName) {
+    noteEl.textContent = 'Set stop below/above previous swing structure. Give it room.';
+  } else {
+    noteEl.textContent = '';
+  }
+}
+
+// FIX 5C: Risk Presets
+function applyRiskPreset(preset) {
+  const instField = document.getElementById('risk-instrument');
+  if(preset === 'NASDAQ') {
+    instField.value = 'NASDAQ';
+    document.getElementById('risk-instrument-note').textContent = 'Wide stops — use 100+ point stops on NASDAQ';
+  } else if(preset === 'Gold') {
+    instField.value = 'Gold (XAUUSD)';
+    document.getElementById('risk-instrument-note').textContent = 'Moderate stops — Gold respects structure well';
+  } else if(preset === 'BTC') {
+    instField.value = 'Bitcoin (BTC)';
+    document.getElementById('risk-instrument-note').textContent = 'Wide stops — BTC is highly volatile, double your normal stop';
+  }
+  calcRisk();
+}
+
+function riskToJournal() {
+  const entry = document.getElementById('risk-entry').value;
+  const stop = document.getElementById('risk-stop').value;
+  const instrument = document.getElementById('risk-instrument').value;
+  goPage(4);
+  document.getElementById('log-trade-form').classList.remove('hidden');
+  document.getElementById('trade-entry').value = entry;
+  document.getElementById('trade-stop').value = stop;
+  document.getElementById('trade-instrument').value = instrument;
+  showToast('Values copied to journal form');
+}
+
+// ─────────────────────────────────────────────
+// PAGE 7: SCI PLAYBOOK — FIX 5E: Quick Reference in HTML
+// ─────────────────────────────────────────────
+const playbookSections = [
+  {
+    title: '1. THE ICC METHOD',
+    content: `<ul>
+      <li><strong>INDICATION:</strong> A swing high OR swing low is broken on 1H or 4H timeframe, creating a new Higher High (HH) or new Lower Low (LL). If it creates neither, it is NOT a valid indication. Must occur during London (2AM-6AM EST) or NY (8:30AM-12PM EST) session.</li>
+      <li><strong>CORRECTION:</strong> Price pulls back after the indication. Market hunts liquidity — trapping early breakout traders and late FOMO entries. Watch on 15M timeframe. Equal highs forming = still correcting, not ready. Do NOT enter here.</li>
+      <li><strong>CONTINUATION:</strong> 15M or 5M shows a clear structure change confirming the move. Price returns above key level (longs) or below key level (shorts) WITH confirmation. THIS is the only valid entry point.</li>
+    </ul>`
+  },
+  {
+    title: '2. MARKET STRUCTURE RULES',
+    content: `<ul>
+      <li>HH + HL = Bull/Uptrend → LONG bias only</li>
+      <li>LH + LL = Bear/Downtrend → SHORT bias only</li>
+      <li>Equal highs + equal lows = Range/Consolidation → STAY OUT completely</li>
+      <li>Bull = Uptrend | Bear = Downtrend | Range = Consolidation (interchangeable terms)</li>
+    </ul>`
+  },
+  {
+    title: '3. TIMEFRAME HIERARCHY',
+    content: `<ul>
+      <li><strong>4H:</strong> Primary trend. Major support/resistance. Weekly direction. NEVER override.</li>
+      <li><strong>1H:</strong> Working timeframe. Swing identification. Daily setups.</li>
+      <li><strong>15M:</strong> Entry timing ONLY — never for structure or bias.</li>
+      <li><strong>Rule:</strong> 4H bull → only look for 1H bull setups → only take long 15M entries.</li>
+    </ul>`
+  },
+  {
+    title: '4. SESSION RULES',
+    content: `<ul>
+      <li><strong>London 2AM-6AM EST:</strong> Initial indications, Gold, GBP pairs.</li>
+      <li><strong>New York 8:30AM-12PM EST:</strong> PRIMARY session — all instruments active.</li>
+      <li><strong>Asian session:</strong> AVOID — low volume, fake moves, no institutional flow.</li>
+      <li>Do not trade outside London or NY sessions.</li>
+    </ul>`
+  },
+  {
+    title: '5. ENTRY RULES',
+    content: `<ul>
+      <li>NEVER enter on the initial breakout. Wait for correction first.</li>
+      <li>Second attempt at a level is far more reliable than the first.</li>
+      <li>Only enter during CONTINUATION phase — after indication AND correction.</li>
+      <li>15M or 5M must show clear structure change confirming direction.</li>
+      <li>Look for rejections at key levels as extra confirmation.</li>
+    </ul>`
+  },
+  {
+    title: '6. STOP LOSS RULES',
+    content: `<ul>
+      <li>Stop loss BELOW previous swing low for longs.</li>
+      <li>Stop loss ABOVE previous swing high for shorts.</li>
+      <li>Give trades room. No tight stops.</li>
+      <li>Wide instruments (NASDAQ, crypto) need extra room.</li>
+    </ul>`
+  },
+  {
+    title: '7. TAKE PROFIT RULES',
+    content: `<ul>
+      <li>Minimum 1:3 risk/reward on every trade.</li>
+      <li>Target 1: Previous swing structure level.</li>
+      <li>Target 2: Next major support/resistance zone.</li>
+      <li>Consider partial exits at Target 1, trail stop to breakeven.</li>
+    </ul>`
+  },
+  {
+    title: '8. PSYCHOLOGY & MINDSET',
+    content: `<ul>
+      <li>Patience is the edge. Wait for all 3 ICC phases.</li>
+      <li>No FOMO entries. If you missed it, wait for the next setup.</li>
+      <li>One good trade per day is enough.</li>
+      <li>Journal every trade — winners AND losers.</li>
+      <li>Review your checklist BEFORE every trade, not after.</li>
+      <li>Accept losses as part of the process. Focus on R, not dollars.</li>
+    </ul>`
+  },
+  {
+    title: '9. INSTRUMENT NOTES',
+    content: `<ul>
+      <li><strong>NASDAQ/NQ:</strong> Wide stops normal (100+ points). Most volatile. Best during NY session.</li>
+      <li><strong>Gold/XAU:</strong> Moderate stops. More predictable structure. Good in London + NY.</li>
+      <li><strong>Bitcoin/BTC:</strong> Widest stops. Double your normal assumption. 24/7 but best during sessions.</li>
+      <li><strong>Forex (EUR/GBP/JPY):</strong> Pip-based. Verify pip value for your lot size. Best in London.</li>
+    </ul>`
+  },
+  {
+    title: '10. NO-TRADE ZONES',
+    noTrade: true,
+    content: `<ul>
+      <li>No valid indication on 1H or 4H</li>
+      <li>Equal highs AND equal lows simultaneously</li>
+      <li>Choppy, unclear structure on 4H or 1H</li>
+      <li>Asian session</li>
+      <li>First breakout attempt (before any correction)</li>
+      <li>High-impact news volatility</li>
+      <li>When checklist score is below 5/10</li>
+    </ul>`
+  }
+];
+
+function renderPlaybook() {
+  const container = document.getElementById('playbook-sections');
+  const customRules = JSON.parse(localStorage.getItem('sci_playbook_custom') || '[]');
+
+  container.innerHTML = playbookSections.map((s, i) => `
+    <div class="playbook-section ${s.noTrade ? 'no-trade' : ''}" id="playbook-s-${i}">
+      <div class="playbook-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+        <span>${s.title}</span>
+        <span>▼</span>
+      </div>
+      <div class="playbook-content">${s.content}</div>
+    </div>
+  `).join('');
+
+  if(customRules.length) {
+    container.innerHTML += `
+      <div class="playbook-section">
+        <div class="playbook-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+          <span>CUSTOM RULES</span><span>▼</span>
+        </div>
+        <div class="playbook-content">
+          <ul>${customRules.map(r => `<li>${escHtml(r.text)}</li>`).join('')}</ul>
+        </div>
+      </div>`;
+  }
+}
+
+function searchPlaybook() {
+  const query = document.getElementById('playbook-search').value.toLowerCase();
+  document.querySelectorAll('.playbook-section').forEach(section => {
+    const text = section.textContent.toLowerCase();
+    if(!query || text.includes(query)) {
+      section.style.display = '';
+      section.style.boxShadow = query ? '0 0 0 1px var(--amber)' : '';
+    } else {
+      section.style.display = 'none';
+    }
+  });
+}
+
+async function suggestPlaybookRule() {
+  const rule = document.getElementById('playbook-new-rule').value.trim();
+  if(!rule) { showToast('Type a rule idea first','error'); return; }
+
+  document.getElementById('playbook-loading').classList.remove('hidden');
+  document.getElementById('playbook-suggestion').innerHTML = '';
+
+  try {
+    const result = await callAI(`Format this as a proper SCI trading rule. Keep it concise and actionable:\n\n${rule}`);
+    const ruleText = getFirstText(result);
+    const safeRule = escHtml(ruleText).replace(/'/g,"\\'").replace(/\n/g,' ');
+    document.getElementById('playbook-suggestion').innerHTML = `
+      <div class="result-card">
+        ${renderDualResult(result)}
+        <div class="btn-group mt-12">
+          <button class="btn btn-amber btn-sm" onclick="approvePlaybookRule('${safeRule}')">Approve & Add</button>
+          <button class="btn btn-sm" onclick="document.getElementById('playbook-suggestion').innerHTML=''">Discard</button>
+        </div>
+      </div>`;
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+  }
+  document.getElementById('playbook-loading').classList.add('hidden');
+}
+
+function approvePlaybookRule(text) {
+  const custom = JSON.parse(localStorage.getItem('sci_playbook_custom') || '[]');
+  custom.push({ text, added: new Date().toISOString() });
+  localStorage.setItem('sci_playbook_custom', JSON.stringify(custom));
+  document.getElementById('playbook-new-rule').value = '';
+  document.getElementById('playbook-suggestion').innerHTML = '';
+  renderPlaybook();
+  showToast('Rule added to Playbook!');
+}
+
+// ─────────────────────────────────────────────
+// PAGE 8: SETTINGS — FIX 2: dual toggles, FIX 5D: AI status
+// ─────────────────────────────────────────────
+function toggleAIEngine(engine) {
+  if(engine === 'claude') {
+    const cur = isClaudeEnabled();
+    localStorage.setItem('sci_claude_enabled', (!cur).toString());
+    updateAIToggles();
+  } else {
+    const cur = isOpenAIEnabled();
+    localStorage.setItem('sci_openai_enabled', (!cur).toString());
+    updateAIToggles();
+  }
+  updateAIStatus();
+}
+
+function updateAIToggles() {
+  const claudeOn = isClaudeEnabled();
+  const openaiOn = isOpenAIEnabled();
+  const ct = document.getElementById('toggle-claude');
+  const ot = document.getElementById('toggle-openai');
+  ct.className = 'toggle-track' + (claudeOn ? ' on' : '');
+  ot.className = 'toggle-track' + (openaiOn ? ' on' : '');
+  document.getElementById('toggle-claude-label').textContent = claudeOn ? 'ON' : 'OFF';
+  document.getElementById('toggle-openai-label').textContent = openaiOn ? 'ON' : 'OFF';
+}
+
+function updateAIStatus() {
+  const claudeKey = localStorage.getItem('sci_anthropic_key');
+  const openaiKey = localStorage.getItem('sci_openai_key');
+  const claudeOn = isClaudeEnabled();
+  const openaiOn = isOpenAIEnabled();
+
+  const claudeConnected = claudeOn && !!claudeKey;
+  const openaiConnected = openaiOn && !!openaiKey;
+
+  document.getElementById('ai-status-claude').innerHTML = claudeConnected
+    ? '🤖 Claude: <span style="color:var(--green);font-weight:700">Connected</span>'
+    : `🤖 Claude: <span style="color:var(--red)">${!claudeOn ? 'Disabled' : 'No key set'}</span>`;
+
+  document.getElementById('ai-status-openai').innerHTML = openaiConnected
+    ? '🤖 GPT-4o: <span style="color:var(--green);font-weight:700">Connected</span>'
+    : `🤖 GPT-4o: <span style="color:var(--red)">${!openaiOn ? 'Disabled' : 'No key set'}</span>`;
+
+  if(claudeConnected && openaiConnected) {
+    document.getElementById('ai-status-dual').innerHTML = '<span style="color:var(--amber);font-weight:700">Dual AI: Active</span>';
+  } else if(claudeConnected) {
+    document.getElementById('ai-status-dual').innerHTML = 'Single AI: Claude';
+  } else if(openaiConnected) {
+    document.getElementById('ai-status-dual').innerHTML = 'Single AI: GPT-4o';
+  } else {
+    document.getElementById('ai-status-dual').innerHTML = '<span style="color:var(--red)">No AI configured</span>';
+  }
+}
+
+function loadSettings() {
+  document.getElementById('set-anthropic-key').value = localStorage.getItem('sci_anthropic_key') || '';
+  document.getElementById('set-openai-key').value = localStorage.getItem('sci_openai_key') || '';
+  updateAIToggles();
+  document.getElementById('set-system-prompt').value = localStorage.getItem('sci_system_prompt') || DEFAULT_SYSTEM_PROMPT;
+
+  const settings = JSON.parse(localStorage.getItem('sci_settings') || '{}');
+  document.getElementById('set-account').value = settings.account || '';
+  document.getElementById('set-risk').value = settings.risk || '';
+  document.getElementById('set-instruments').value = settings.instruments || '';
+  document.getElementById('set-timezone').value = settings.timezone || 'EST';
+
+  updateAIStatus();
+  updateStorageIndicator();
+}
+
+function saveSettings() {
+  localStorage.setItem('sci_anthropic_key', document.getElementById('set-anthropic-key').value);
+  localStorage.setItem('sci_openai_key', document.getElementById('set-openai-key').value);
+  localStorage.setItem('sci_system_prompt', document.getElementById('set-system-prompt').value);
+
+  const settings = {
+    account: document.getElementById('set-account').value,
+    risk: document.getElementById('set-risk').value,
+    instruments: document.getElementById('set-instruments').value,
+    timezone: document.getElementById('set-timezone').value
+  };
+  localStorage.setItem('sci_settings', JSON.stringify(settings));
+  updateAIStatus();
+  showToast('Settings saved!');
+}
+
+// Auto-save API keys on change
+document.getElementById('set-anthropic-key').addEventListener('change', () => { saveSettings(); updateAIStatus(); });
+document.getElementById('set-openai-key').addEventListener('change', () => { saveSettings(); updateAIStatus(); });
+document.getElementById('set-system-prompt').addEventListener('change', saveSettings);
+
+function resetSystemPrompt() {
+  document.getElementById('set-system-prompt').value = DEFAULT_SYSTEM_PROMPT;
+  localStorage.setItem('sci_system_prompt', DEFAULT_SYSTEM_PROMPT);
+  showToast('System prompt reset to default');
+}
+
+function togglePw(btn) {
+  const input = btn.previousElementSibling;
+  if(input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
+  else { input.type = 'password'; btn.textContent = 'Show'; }
+}
+
+async function testAI(engine) {
+  try {
+    if(engine === 'anthropic') {
+      const key = document.getElementById('set-anthropic-key').value;
+      if(!key) { showToast('Enter Anthropic key first','error'); return; }
+      localStorage.setItem('sci_anthropic_key', key);
+      const reply = await callClaudeRaw('Say OK', null, 'You are a test assistant.');
+      showToast('Claude Connected: ' + reply.substring(0, 50));
+      updateAIStatus();
+    } else {
+      const key = document.getElementById('set-openai-key').value;
+      if(!key) { showToast('Enter OpenAI key first','error'); return; }
+      localStorage.setItem('sci_openai_key', key);
+      const reply = await callOpenAIRaw('Say OK', null, 'You are a test assistant.');
+      showToast('GPT-4o Connected: ' + reply.substring(0, 50));
+      updateAIStatus();
+    }
+  } catch(e) {
+    showToast('Failed: ' + e.message, 'error');
+  }
+}
+
+function updateStorageIndicator() {
+  let total = 0;
+  for(let key in localStorage) {
+    if(localStorage.hasOwnProperty(key)) {
+      total += localStorage[key].length * 2;
+    }
+  }
+  const mb = (total / (1024 * 1024)).toFixed(2);
+  document.getElementById('storage-indicator').textContent = `Using ~${mb} MB of browser storage`;
+}
+
+// Data Management
+function exportAllData() {
+  const data = {};
+  for(let key in localStorage) {
+    if(key.startsWith('sci_')) data[key] = localStorage[key];
+  }
+  const dateStr = new Date().toISOString().split('T')[0];
+  downloadFile(JSON.stringify(data, null, 2), `sci_backup_${dateStr}.json`, 'application/json');
+  showToast('Backup exported!');
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      for(let key in data) {
+        localStorage.setItem(key, data[key]);
+      }
+      showToast('Backup restored! Refreshing...');
+      setTimeout(() => location.reload(), 1000);
+    } catch(err) {
+      showToast('Invalid backup file','error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData() {
+  showConfirm('Clear All Data', 'This will permanently delete ALL your trading data, strategies, and settings. Are you sure?', () => {
+    const keysToRemove = [];
+    for(let key in localStorage) {
+      if(key.startsWith('sci_')) keysToRemove.push(key);
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    showToast('All data cleared! Refreshing...');
+    setTimeout(() => location.reload(), 1000);
+  });
+}
+
+// ─────────────────────────────────────────────
+// UTILITY FUNCTIONS
+// ─────────────────────────────────────────────
+function escHtml(str) {
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ─────────────────────────────────────────────
+// INITIALIZATION
+// ─────────────────────────────────────────────
+function init() {
+  renderInstruments();
+  renderChecklist();
+  renderPlaybook();
+  renderSavedStrategies();
+  updateAIStatus();
+
+  // Set default datetime for trade form
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  document.getElementById('trade-datetime').value = local.toISOString().slice(0, 16);
+
+  // Load risk calculator saved inputs
+  const riskInputs = JSON.parse(localStorage.getItem('sci_risk_inputs') || '{}');
+  if(riskInputs.account) document.getElementById('risk-account').value = riskInputs.account;
+  if(riskInputs.entry) document.getElementById('risk-entry').value = riskInputs.entry;
+  if(riskInputs.stop) document.getElementById('risk-stop').value = riskInputs.stop;
+  if(riskInputs.instrumentName) document.getElementById('risk-instrument').value = riskInputs.instrumentName;
+  if(riskInputs.pct) {
+    document.getElementById('risk-pct-val').value = riskInputs.pct;
+    setRiskPct(riskInputs.pct);
+  }
+
+  // Load settings defaults into risk calc if no saved inputs
+  const settings = JSON.parse(localStorage.getItem('sci_settings') || '{}');
+  if(!riskInputs.account && settings.account) {
+    document.getElementById('risk-account').value = settings.account;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
