@@ -85,8 +85,14 @@ input[type="number"]::-webkit-inner-spin-button { opacity:1; }
 .page { display: none; }
 .page.active { display: block; }
 .page-title {
-  font-size: 22px; font-weight: 700; margin-bottom: 20px;
+  font-size: 22px; font-weight: 700; margin-bottom: 12px;
   padding-left: 12px; border-left: 3px solid var(--amber);
+}
+.page-banner {
+  background: var(--card); border-left: 3px solid var(--amber);
+  padding: 12px 16px; border-radius: 0 8px 8px 0;
+  font-size: 13px; line-height: 1.7; color: var(--text-dim);
+  margin-bottom: 20px;
 }
 
 /* ═══════════════════════════════════════════
@@ -600,25 +606,25 @@ input[type="number"]::-webkit-inner-spin-button { opacity:1; }
      ═══════════════════════════════════════════ -->
 <nav id="sidebar">
   <div class="sidebar-toggle" onclick="toggleSidebar()">☰</div>
-  <div class="nav-item active" onclick="goPage(0)"><span class="nav-icon">🎯</span><span class="nav-label">Command Center</span></div>
-  <div class="nav-item" onclick="goPage(1)"><span class="nav-icon">📡</span><span class="nav-label">Market Scanner</span></div>
-  <div class="nav-item" onclick="goPage(2)"><span class="nav-icon">📸</span><span class="nav-label">Analyze Trade</span></div>
+  <div class="nav-item active" onclick="goPage(0)"><span class="nav-icon">🏠</span><span class="nav-label">Command Center</span></div>
+  <div class="nav-item" onclick="goPage(6)"><span class="nav-icon">📚</span><span class="nav-label">SCI Playbook</span></div>
+  <div class="nav-item" onclick="goPage(1)"><span class="nav-icon">🔍</span><span class="nav-label">Market Scanner</span></div>
   <div class="nav-item" onclick="goPage(3)"><span class="nav-icon">📐</span><span class="nav-label">Strategy Lab</span></div>
-  <div class="nav-item" onclick="goPage(4)"><span class="nav-icon">📓</span><span class="nav-label">Trade Journal</span></div>
+  <div class="nav-item" onclick="goPage(2)"><span class="nav-icon">📸</span><span class="nav-label">Analyze Trade</span></div>
   <div class="nav-item" onclick="goPage(5)"><span class="nav-icon">🧮</span><span class="nav-label">Risk Calculator</span></div>
-  <div class="nav-item" onclick="goPage(6)"><span class="nav-icon">📖</span><span class="nav-label">SCI Playbook</span></div>
+  <div class="nav-item" onclick="goPage(4)"><span class="nav-icon">📋</span><span class="nav-label">Trade Journal</span></div>
   <div class="nav-item" onclick="goPage(7)"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></div>
 </nav>
 
 <!-- MOBILE TABS -->
 <div id="mobile-tabs">
-  <span class="mob-tab active" onclick="goPage(0)">🎯</span>
-  <span class="mob-tab" onclick="goPage(1)">📡</span>
-  <span class="mob-tab" onclick="goPage(2)">📸</span>
+  <span class="mob-tab active" onclick="goPage(0)">🏠</span>
+  <span class="mob-tab" onclick="goPage(6)">📚</span>
+  <span class="mob-tab" onclick="goPage(1)">🔍</span>
   <span class="mob-tab" onclick="goPage(3)">📐</span>
-  <span class="mob-tab" onclick="goPage(4)">📓</span>
+  <span class="mob-tab" onclick="goPage(2)">📸</span>
   <span class="mob-tab" onclick="goPage(5)">🧮</span>
-  <span class="mob-tab" onclick="goPage(6)">📖</span>
+  <span class="mob-tab" onclick="goPage(4)">📋</span>
   <span class="mob-tab" onclick="goPage(7)">⚙️</span>
 </div>
 
@@ -631,7 +637,8 @@ input[type="number"]::-webkit-inner-spin-button { opacity:1; }
      PAGE 1: COMMAND CENTER
      ═══════════════════════════════════════════ -->
 <div class="page active" id="page-0">
-  <h2 class="page-title">🎯 Command Center</h2>
+  <h2 class="page-title">🏠 Command Center</h2>
+  <div class="page-banner">START HERE every trading day. Check the session clock — only trade during London (2AM–6AM EST) or New York (8:30AM–12PM EST). Update your instrument cards with today’s trend and ICC phase. Run through the 10-point checklist before considering any trade. Use the quick chat to ask your AI assistant anything.</div>
 
   <!-- Status Bar -->
   <div class="status-bar">
@@ -709,7 +716,8 @@ input[type="number"]::-webkit-inner-spin-button { opacity:1; }
      PAGE 2: MARKET SCANNER
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-1">
-  <h2 class="page-title">📡 Market Scanner</h2>
+  <h2 class="page-title">🔍 Market Scanner</h2>
+  <div class="page-banner">STEP 1 OF YOUR PRE-TRADE ROUTINE. Use this every morning before the session opens. Run the full scan to see which of your instruments has the best setup today. Use the Pattern Recognition section to identify what you are seeing on your chart. Use the Pre-Market Brief to get a daily AI outlook — this is NOT for Asian session notes, it is your morning game plan for London and New York sessions only.</div>
 
   <div class="card">
     <div class="card-header" style="color:var(--teal)">AI Scan — All Instruments</div>
@@ -746,19 +754,35 @@ input[type="number"]::-webkit-inner-spin-button { opacity:1; }
   </div>
 
   <div class="card">
-    <div class="card-header" style="color:var(--teal)">Pre-Market Brief Generator</div>
+    <div class="card-header" style="color:var(--teal)">Morning Game Plan</div>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Fill in what you know before the session opens. The AI will generate your complete morning game plan — which instruments to watch, what setups to look for, and what to avoid today.</p>
     <div class="grid-2 mb-12">
       <div>
-        <label class="label">Asian Session Notes</label>
-        <textarea class="input" id="brief-asian" placeholder="What happened overnight..."></textarea>
+        <label class="label">What do you see on your charts right now?</label>
+        <textarea class="input" id="brief-asian" placeholder="e.g. NASDAQ made a new HH on 4H, Gold is ranging, BTC broke a swing low overnight..."></textarea>
       </div>
       <div>
-        <label class="label">Key Levels to Watch</label>
-        <textarea class="input" id="brief-levels" placeholder="Support/resistance levels..."></textarea>
+        <label class="label">Key Levels to Watch Today</label>
+        <textarea class="input" id="brief-levels" placeholder="e.g. NASDAQ resistance at 18,500, Gold support at 2,320, BTC swing high at 68,000..."></textarea>
       </div>
     </div>
-    <button class="btn btn-amber" onclick="generateBrief()">Generate Brief →</button>
-    <div id="brief-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Generating brief...</div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">Which session are you trading?</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'brief-session','active-blue')" data-val="London">London</button>
+          <button class="btn" onclick="setManualBtn(this,'brief-session','active-green')" data-val="NY">NY</button>
+          <button class="btn" onclick="setManualBtn(this,'brief-session','active-amber')" data-val="Both">Both</button>
+        </div>
+        <input type="hidden" id="brief-session">
+      </div>
+      <div>
+        <label class="label">Any news or events today?</label>
+        <textarea class="input" id="brief-news" placeholder="e.g. FOMC at 2PM, NFP Friday, no major news..."></textarea>
+      </div>
+    </div>
+    <button class="btn btn-amber" onclick="generateBrief()">Generate Morning Game Plan →</button>
+    <div id="brief-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Generating game plan...</div>
     <div id="brief-result" class="mt-12"></div>
   </div>
 </div>
@@ -768,6 +792,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity:1; }
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-2">
   <h2 class="page-title">📸 Analyze Trade</h2>
+  <div class="page-banner">STEP 2 OF YOUR PRE-TRADE ROUTINE. Take a screenshot of your TradingView chart and upload it here. The AI will read your chart and tell you: is this a valid SCI setup, what phase it is in, your entry zone, stop loss, targets, and a final verdict of TAKE, WAIT, or SKIP. Do not enter a trade without running this analysis first. Both Claude and GPT-4o will analyze simultaneously — read both responses.</div>
 
   <div class="tabs">
     <div class="tab-btn active" onclick="switchAnalyzeTab(0)">Screenshot</div>
@@ -921,6 +946,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity:1; }
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-3">
   <h2 class="page-title">📐 Strategy Lab</h2>
+  <div class="page-banner">Build, save, and test your SCI trading strategies. Select a strategy type, customize the rules, and let the AI generate a complete strategy document. Use Lona Agency to backtest your strategies against real historical data. Start with the ⭐ ICC ⭐ strategy — it is the highest probability setup in the SCI method.</div>
 
   <div class="card">
     <div class="card-header" style="color:var(--purple)">Build a Strategy</div>
@@ -1115,7 +1141,8 @@ Report: win rate, average R/R, max drawdown, number of trades, best conditions.<
      PAGE 5: TRADE JOURNAL
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-4">
-  <h2 class="page-title">📓 Trade Journal</h2>
+  <h2 class="page-title">📋 Trade Journal</h2>
+  <div class="page-banner">Log every trade you take — wins, losses, and breakevens. The journal tracks your performance over time with charts, stats, and AI reviews. Filter by instrument, session, strategy, or result. Export your data anytime. The more trades you log, the more accurate your analytics become. Review your journal weekly to find patterns in your trading.</div>
 
   <button class="btn btn-amber mb-12" onclick="document.getElementById('log-trade-form').classList.toggle('hidden')">+ Log New Trade</button>
 
@@ -1303,6 +1330,7 @@ Report: win rate, average R/R, max drawdown, number of trades, best conditions.<
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-5">
   <h2 class="page-title">🧮 Risk Calculator</h2>
+  <div class="page-banner">STEP 3 OF YOUR PRE-TRADE ROUTINE. Before entering any trade, calculate your exact position size here. Enter your account size, risk percentage (1-3%), entry price, and stop loss. The calculator gives you: dollar risk, position size, and your 1:2, 1:3, and 1:5 targets. Use the quick presets for NASDAQ, Gold, or BTC. Never risk more than 1-3% per trade.</div>
 
   <div class="card">
     <div class="card-header">Quick Presets</div>
@@ -1366,7 +1394,8 @@ Report: win rate, average R/R, max drawdown, number of trades, best conditions.<
      PAGE 7: SCI PLAYBOOK
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-6">
-  <h2 class="page-title">📖 SCI Playbook</h2>
+  <h2 class="page-title">📚 SCI Playbook</h2>
+  <div class="page-banner">YOUR TRADING BIBLE. This is the complete SCI 14 methodology — every rule, every concept, every session guideline. Read this FIRST if you are new. Come back here whenever you are unsure about a setup. The Quick Reference card at the top has the 8 non-negotiable rules. Below it, every section of the SCI method is searchable and collapsible. Add your own custom rules at the bottom.</div>
 
   <!-- Quick Reference Card -->
   <div class="quick-ref-card">
@@ -1400,6 +1429,7 @@ Report: win rate, average R/R, max drawdown, number of trades, best conditions.<
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-7">
   <h2 class="page-title">⚙️ Settings</h2>
+  <div class="page-banner">Configure your AI engines, API keys, account defaults, and data management. You need at least one AI key (Claude or GPT-4o) for the dashboard to work. Both engines can run simultaneously for dual analysis. Add your Lona Agency key to enable strategy backtesting. Use Export/Import to back up all your data.</div>
 
   <!-- AI Status Indicator -->
   <div class="ai-status-panel" id="ai-status-panel">
@@ -2338,20 +2368,24 @@ async function identifyPattern() {
 }
 
 async function generateBrief() {
-  const asian = document.getElementById('brief-asian').value.trim();
+  const chartNotes = document.getElementById('brief-asian').value.trim();
   const levels = document.getElementById('brief-levels').value.trim();
+  const session = document.getElementById('brief-session')?.value || '';
+  const news = document.getElementById('brief-news')?.value?.trim() || '';
   const instruments = getInstruments();
 
   document.getElementById('brief-loading').classList.remove('hidden');
   document.getElementById('brief-result').innerHTML = '';
 
-  let prompt = `Generate today's pre-market brief using SCI methodology.\n\nCurrent instruments:\n`;
+  let prompt = `Generate my MORNING GAME PLAN for today using the SCI methodology. This is my pre-session preparation — tell me exactly what to focus on, what setups to look for, and what to avoid.\n\nMy instruments and their current state:\n`;
   instruments.forEach(inst => {
-    prompt += `- ${inst.name}: Trend=${inst.trend||'Not set'}, ICC=${inst.icc||'Not set'}, Active=${inst.active?'Yes':'No'}\n`;
+    prompt += `- ${inst.name}: Trend=${inst.trend||'Not set'}, ICC Phase=${inst.icc||'Not set'}, Active Setup=${inst.active?'Yes':'No'}\n`;
   });
-  if(asian) prompt += `\nAsian session notes: ${asian}`;
-  if(levels) prompt += `\nKey levels: ${levels}`;
-  prompt += `\n\nReturn structured brief with:\n1. Overall market bias today\n2. Top instrument/opportunity\n3. Key levels across instruments\n4. Session to focus on\n5. What to avoid today\n6. One-paragraph SCI outlook`;
+  if(chartNotes) prompt += `\nWhat I see on my charts right now: ${chartNotes}`;
+  if(levels) prompt += `\nKey levels I'm watching: ${levels}`;
+  if(session) prompt += `\nSession I'm trading today: ${session}`;
+  if(news) prompt += `\nNews/events today: ${news}`;
+  prompt += `\n\nReturn a structured MORNING GAME PLAN with these exact sections:\n1. TODAY'S BIAS — Overall market direction based on my chart notes and instrument states\n2. TOP SETUP — Which instrument has the best ICC setup right now and why\n3. KEY LEVELS — The most important support/resistance levels to watch across my instruments\n4. SESSION PLAN — What to expect in the ${session||'upcoming'} session, including golden window timing\n5. AVOID LIST — What NOT to trade today and why (ranging instruments, no-trade zones, news risk)\n6. GAME PLAN SUMMARY — One clear paragraph: "Today I will focus on [instrument] looking for [setup type] during [session]. My entry trigger is [specific]. I will avoid [specific]."\n\nBe specific to MY instruments and MY levels. Do not be generic.`;
 
   try {
     const result = await callAI(prompt);
@@ -2359,9 +2393,9 @@ async function generateBrief() {
     document.getElementById('brief-result').innerHTML = `
       <div class="result-card">
         ${renderDualResult(result)}
-        <button class="btn btn-amber btn-sm mt-12" onclick="saveBrief('${escHtml(dateStr)}',this)">Save Brief to Journal</button>
+        <button class="btn btn-amber btn-sm mt-12" onclick="saveBrief('${escHtml(dateStr)}',this)">Save Game Plan to Journal</button>
       </div>`;
-    showToast('Brief generated!');
+    showToast('Morning game plan generated!');
   } catch(e) {
     showToast('Error: '+e.message, 'error');
   }
