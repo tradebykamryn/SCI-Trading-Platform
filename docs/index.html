@@ -48,637 +48,659 @@ input[type="number"]::-webkit-inner-spin-button { opacity:1; }
   width: var(--sidebar-collapsed);
   background: var(--card);
   border-right: 1px solid var(--border);
-  z-index: 1000;
+  z-index: 100;
   transition: width var(--transition);
-  display: flex; flex-direction: column;
   overflow: hidden;
+  display: flex; flex-direction: column;
 }
 #sidebar.expanded { width: var(--sidebar-expanded); }
-#sidebar-toggle {
-  width:100%; height:44px; background:none; border:none; border-bottom:1px solid var(--border);
-  color: var(--text-dim); cursor:pointer; display:flex; align-items:center; justify-content:center;
-  font-size:18px; transition: all var(--transition);
+.sidebar-toggle {
+  padding: 16px; cursor: pointer; text-align: center;
+  font-size: 20px; border-bottom: 1px solid var(--border);
 }
-#sidebar-toggle:hover { color:var(--amber); background:rgba(212,160,23,0.08); }
-.nav-items { flex:1; display:flex; flex-direction:column; padding:4px 0; overflow-y:auto; }
 .nav-item {
-  display:flex; align-items:center; gap:12px; padding:12px 16px;
-  cursor:pointer; color:var(--text-dim); transition:all var(--transition);
-  white-space:nowrap; text-decoration:none; border:none; background:none;
-  font-size:14px; width:100%; text-align:left;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; cursor: pointer;
+  color: var(--text-dim); transition: all var(--transition);
+  white-space: nowrap; border-left: 3px solid transparent;
 }
-.nav-item:hover { color:var(--text); background:rgba(255,255,255,0.04); }
-/* FIX 5F: amber glow on active nav item */
-.nav-item.active { color:var(--amber); background:rgba(212,160,23,0.1); border-right:2px solid var(--amber); box-shadow:inset 0 0 12px rgba(212,160,23,0.15); }
-.nav-icon { font-size:20px; min-width:24px; text-align:center; }
-.nav-label { opacity:0; transition:opacity var(--transition); }
-#sidebar.expanded .nav-label { opacity:1; }
+.nav-item:hover { color: var(--text); background: rgba(212,160,23,0.05); }
+.nav-item.active {
+  color: var(--amber); border-left-color: var(--amber);
+  background: rgba(212,160,23,0.08);
+  text-shadow: 0 0 12px rgba(212,160,23,0.4);
+}
+.nav-icon { font-size: 18px; min-width: 24px; text-align: center; }
+.nav-label { font-size: 13px; font-weight: 500; }
 
 /* ═══════════════════════════════════════════
-   MAIN CONTENT AREA
+   MAIN CONTENT
    ═══════════════════════════════════════════ */
 #main {
   margin-left: var(--sidebar-collapsed);
   padding: 20px;
+  max-width: 1200px;
   transition: margin-left var(--transition);
-  min-height: 100vh;
 }
-#sidebar.expanded ~ #main { margin-left: var(--sidebar-expanded); }
-.page { display:none; }
-.page.active { display:block; }
+.page { display: none; }
+.page.active { display: block; }
+.page-title {
+  font-size: 22px; font-weight: 700; margin-bottom: 20px;
+  padding-left: 12px; border-left: 3px solid var(--amber);
+}
 
 /* ═══════════════════════════════════════════
    MOBILE BOTTOM TAB BAR
    ═══════════════════════════════════════════ */
-@media (max-width: 767px) {
-  #sidebar { display:none !important; }
-  #main { margin-left:0 !important; padding:12px 12px 80px 12px; }
-  #mobile-tabs {
-    display:flex !important; position:fixed; bottom:0; left:0; right:0;
-    background:var(--card); border-top:1px solid var(--border);
-    z-index:1000; height:60px; overflow-x:auto;
-  }
-  .mob-tab {
-    flex:1; min-width:50px; display:flex; flex-direction:column; align-items:center;
-    justify-content:center; gap:2px; color:var(--text-dim); cursor:pointer;
-    font-size:10px; border:none; background:none; padding:4px 2px;
-  }
-  .mob-tab.active { color:var(--amber); }
-  .mob-tab-icon { font-size:20px; }
-  /* FIX 2: Dual AI panels stack on mobile */
-  .dual-ai-panels { flex-direction:column !important; }
-  .dual-ai-panels .ai-panel { width:100% !important; }
+#mobile-tabs {
+  display: none; position: fixed; bottom:0; left:0; right:0;
+  background: var(--card); border-top: 1px solid var(--border);
+  z-index: 100; overflow-x: auto; white-space: nowrap;
 }
-#mobile-tabs { display:none; }
+.mob-tab {
+  display: inline-block; padding: 10px 14px;
+  font-size: 18px; cursor: pointer; color: var(--text-dim);
+}
+.mob-tab.active { color: var(--amber); }
+@media (max-width: 768px) {
+  #sidebar { display: none; }
+  #main { margin-left: 0; padding-bottom: 70px; }
+  #mobile-tabs { display: block; }
+}
 
 /* ═══════════════════════════════════════════
-   CARDS, BUTTONS, INPUTS
+   CARD & LAYOUT COMPONENTS
    ═══════════════════════════════════════════ */
 .card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px; margin-bottom: 16px;
 }
 .card-header {
-  font-size: 16px; font-weight: 600; margin-bottom: 14px;
-  display:flex; align-items:center; gap:8px;
+  font-size: 16px; font-weight: 700; margin-bottom: 16px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
 }
-.btn {
-  padding: 8px 16px; border-radius: 6px; border:1px solid var(--border);
-  background: var(--card); color: var(--text); cursor:pointer;
-  font-size: 13px; transition: all var(--transition); display:inline-flex;
-  align-items:center; gap:6px;
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
 }
-.btn:hover { border-color: var(--amber); color: var(--amber); }
-.btn-amber {
-  background: var(--amber); color:#000; border-color:var(--amber); font-weight:600;
-}
-.btn-amber:hover { background:#b8891a; border-color:#b8891a; color:#000; }
-.btn-sm { padding:5px 10px; font-size:12px; }
-.btn-group { display:flex; gap:4px; flex-wrap:wrap; }
-.btn-group .btn.active-green { background:var(--green); color:#000; border-color:var(--green); }
-.btn-group .btn.active-red { background:var(--red); color:#fff; border-color:var(--red); }
-.btn-group .btn.active-yellow { background:var(--yellow); color:#000; border-color:var(--yellow); }
-.btn-group .btn.active-blue { background:var(--blue); color:#fff; border-color:var(--blue); }
-.btn-group .btn.active-orange { background:#f97316; color:#000; border-color:#f97316; }
-.btn-group .btn.active-gray { background:#6b7280; color:#fff; border-color:#6b7280; }
-.btn-group .btn.active-purple { background:var(--purple); color:#000; border-color:var(--purple); }
-.btn-group .btn.active-amber { background:var(--amber); color:#000; border-color:var(--amber); }
-
-.input {
-  width:100%; padding:8px 12px; background:var(--bg); border:1px solid var(--border);
-  border-radius:6px; color:var(--text); font-size:13px; transition:border-color var(--transition);
-}
-.input:focus { outline:none; border-color:var(--amber); }
-textarea.input { resize:vertical; min-height:60px; }
-.label { font-size:12px; color:var(--text-dim); margin-bottom:4px; display:block; }
-.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-.grid-4 { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
-@media(max-width:600px) { .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; } }
+.divider { border-top: 1px solid var(--border); margin: 16px 0; }
+.hidden { display: none !important; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.text-center { text-align: center; }
+.overflow-x { overflow-x: auto; }
 
 /* ═══════════════════════════════════════════
-   FIX 1: SESSION STATUS BAR — Two permanent rows
+   FORM ELEMENTS
    ═══════════════════════════════════════════ */
-#status-bar {
-  background: var(--card); border:1px solid var(--border); border-radius:10px;
-  padding:12px 20px; margin-bottom:16px;
+.label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.input {
+  width: 100%; padding: 8px 12px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-size: 14px;
 }
-#clock { font-family:'Courier New',monospace; font-size:28px; font-weight:700; color:var(--amber); text-align:center; }
-#date-display { text-align:center; font-size:12px; color:var(--text-dim); margin-top:2px; margin-bottom:10px; }
-.session-row {
-  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
-  padding:10px 14px; border-radius:8px; margin-bottom:6px;
-  border:1px solid var(--border); background:rgba(0,0,0,0.2); transition:all 0.3s ease;
+.input:focus { outline: none; border-color: var(--amber); }
+.btn {
+  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+  background: transparent; color: var(--text); cursor: pointer;
+  font-size: 13px; font-weight: 500; transition: all var(--transition);
 }
-.session-row.ny-row { font-size:15px; }
-.session-row.ny-open { border-color:var(--green); box-shadow:0 0 12px rgba(34,197,94,0.2); }
-.session-row.golden-active { border-color:var(--amber) !important; box-shadow:0 0 16px rgba(212,160,23,0.25) !important; }
-.session-name { font-weight:700; font-size:14px; }
-.session-row.ny-row .session-name { font-size:16px; }
-.session-status-badge {
-  padding:4px 12px; border-radius:12px; font-size:11px; font-weight:700;
-  text-transform:uppercase; letter-spacing:0.5px;
-}
-.status-open-london { background:rgba(59,130,246,0.25); color:var(--blue); border:1px solid var(--blue); animation:glowPulseBlue 2s infinite; }
-.status-open-ny { background:rgba(34,197,94,0.25); color:var(--green); border:1px solid var(--green); animation:glowPulseGreen 2s infinite; }
-.status-closed { background:rgba(107,114,128,0.2); color:#9ca3af; border:1px solid #4b5563; }
-.session-countdown { font-size:12px; color:var(--text-dim); }
-.golden-window-label { font-size:11px; margin-top:4px; width:100%; }
-.golden-now { color:var(--amber); font-weight:700; animation:goldenPulse 1.5s infinite; }
-.golden-soon { color:var(--yellow); font-weight:600; }
-.golden-passed { color:#6b7280; }
-.golden-waiting { color:#6b7280; }
-@keyframes glowPulseBlue { 0%,100%{box-shadow:0 0 4px rgba(59,130,246,0.3)} 50%{box-shadow:0 0 10px rgba(59,130,246,0.6)} }
-@keyframes glowPulseGreen { 0%,100%{box-shadow:0 0 4px rgba(34,197,94,0.3)} 50%{box-shadow:0 0 10px rgba(34,197,94,0.6)} }
-@keyframes goldenPulse { 0%,100%{opacity:0.7} 50%{opacity:1} }
+.btn:hover { background: rgba(255,255,255,0.05); }
+.btn-amber { background: var(--amber); color: #000; border-color: var(--amber); font-weight: 700; }
+.btn-amber:hover { background: #b8890f; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.active-green { background: var(--green) !important; color: #000 !important; border-color: var(--green) !important; }
+.active-red { background: var(--red) !important; color: #fff !important; border-color: var(--red) !important; }
+.active-yellow { background: var(--yellow) !important; color: #000 !important; border-color: var(--yellow) !important; }
+.active-amber { background: var(--amber) !important; color: #000 !important; border-color: var(--amber) !important; }
+.active-blue { background: var(--blue) !important; color: #fff !important; border-color: var(--blue) !important; }
+.active-orange { background: #f97316 !important; color: #000 !important; border-color: #f97316 !important; }
 
 /* ═══════════════════════════════════════════
-   INSTRUMENT CARDS
+   BADGES
+   ═══════════════════════════════════════════ */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+.badge-green { background: rgba(34,197,94,0.15); color: var(--green); }
+.badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+.badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); }
+.badge-blue { background: rgba(59,130,246,0.15); color: var(--blue); }
+.badge-purple { background: rgba(167,139,250,0.15); color: var(--purple); }
+.badge-amber { background: rgba(212,160,23,0.15); color: var(--amber); }
+
+/* ═══════════════════════════════════════════
+   TOAST NOTIFICATIONS
+   ═══════════════════════════════════════════ */
+#toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+  max-width: 400px;
+}
+.toast-success { background: var(--green); color: #000; }
+.toast-error { background: var(--red); color: #fff; }
+@keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+@keyframes fadeOut { to { opacity:0; transform: translateX(100%); } }
+
+/* ═══════════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center; z-index: 9998;
+}
+.modal {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;
+}
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+/* ═══════════════════════════════════════════
+   FIX 1: STATUS BAR — Two permanent session rows
+   ═══════════════════════════════════════════ */
+.status-bar { margin-bottom: 20px; }
+#clock { font-size: 36px; font-weight: 700; color: var(--amber); font-variant-numeric: tabular-nums; }
+#date-display { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; }
+
+.session-row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: 10px; margin-bottom: 8px;
+  background: var(--card); border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+.session-row.ny-open { border-color: var(--green); box-shadow: 0 0 12px rgba(34,197,94,0.2); }
+.session-row.golden-active { border-color: var(--amber); box-shadow: 0 0 16px rgba(212,160,23,0.3); }
+.session-label { font-weight: 700; font-size: 14px; min-width: 120px; }
+.session-status-badge {
+  padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.status-open-london { background: rgba(59,130,246,0.2); color: var(--blue); }
+.status-open-ny { background: rgba(34,197,94,0.2); color: var(--green); animation: pulse 2s infinite; }
+.status-closed { background: rgba(148,163,184,0.1); color: var(--text-dim); }
+.session-countdown { font-size: 12px; color: var(--text-dim); }
+.golden-now { color: var(--amber); font-weight: 700; animation: pulse 1.5s infinite; }
+.golden-soon { color: var(--yellow); font-weight: 600; }
+.golden-passed { color: var(--text-dim); font-style: italic; }
+.golden-waiting { color: var(--text-dim); font-size: 12px; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+
+/* CHANGE 4: API Status Pills */
+.api-status-row {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; margin-bottom: 8px;
+}
+.api-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  background: var(--card); border: 1px solid var(--border); cursor: pointer;
+  transition: all var(--transition);
+}
+.api-pill:hover { background: rgba(255,255,255,0.05); }
+.api-pill .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.api-pill .dot.on { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.api-pill .dot.off { background: var(--red); }
+
+/* ═══════════════════════════════════════════
+   INSTRUMENT CARDS — FIX 5F: green glow
    ═══════════════════════════════════════════ */
 .instrument-card {
-  background:var(--card); border:1px solid var(--border); border-radius:10px;
-  padding:16px; position:relative; cursor:grab; transition:box-shadow 0.3s ease, border-color 0.3s ease;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; transition: all 0.3s ease;
 }
-.instrument-card.dragging { opacity:0.5; }
-/* FIX 5F: green glow when active setup is ON */
-.instrument-card.active-setup { border-color:var(--green); box-shadow:0 0 12px rgba(34,197,94,0.2); }
-.instrument-name {
-  font-size:16px; font-weight:700; color:var(--amber); cursor:pointer;
-  border:none; background:none; outline:none; width:calc(100% - 30px);
+.instrument-card.active-setup {
+  border-color: var(--green);
+  box-shadow: 0 0 16px rgba(34,197,94,0.2);
 }
-.instrument-delete {
-  position:absolute; top:8px; right:10px; background:none; border:none;
-  color:var(--text-dim); cursor:pointer; font-size:18px; padding:4px;
+.instrument-card .inst-name {
+  font-weight: 700; font-size: 16px; margin-bottom: 8px; color: var(--amber);
 }
-.instrument-delete:hover { color:var(--red); }
-.instrument-section { margin-top:10px; }
-.instrument-section .label { margin-bottom:6px; }
-.toggle-switch {
-  display:inline-flex; align-items:center; gap:8px; cursor:pointer;
-}
-.toggle-track {
-  width:48px; height:24px; border-radius:12px; background:#374151;
-  position:relative; transition:background var(--transition);
-}
-.toggle-track.on { background:var(--green); }
-.toggle-knob {
-  width:20px; height:20px; border-radius:50%; background:#fff;
-  position:absolute; top:2px; left:2px; transition:left var(--transition);
-}
-.toggle-track.on .toggle-knob { left:26px; }
-.updated-time { font-size:11px; color:var(--text-dim); margin-top:8px; }
+.instrument-card .inst-updated { font-size: 10px; color: var(--text-dim); margin-top: 8px; }
+.instrument-card.dragging { opacity: 0.4; }
 
 /* ═══════════════════════════════════════════
    CHECKLIST
    ═══════════════════════════════════════════ */
 .checklist-item {
-  display:flex; align-items:flex-start; gap:10px; padding:8px 0;
-  border-bottom:1px solid var(--border); font-size:13px;
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px;
 }
-.checklist-item:last-child { border-bottom:none; }
-.checklist-item input[type="checkbox"] {
-  accent-color:var(--amber); width:18px; height:18px; margin-top:2px; cursor:pointer; flex-shrink:0;
-}
+.checklist-item input[type="checkbox"] { margin-top: 2px; accent-color: var(--amber); }
 .score-banner {
-  padding:12px; border-radius:8px; text-align:center; font-weight:600;
-  font-size:15px; margin-top:12px;
+  padding: 10px; border-radius: 8px; text-align: center;
+  font-weight: 700; font-size: 14px; margin-top: 12px;
 }
-.score-green { background:rgba(34,197,94,0.15); color:var(--green); border:1px solid var(--green); }
-.score-yellow { background:rgba(234,179,8,0.15); color:var(--yellow); border:1px solid var(--yellow); }
-.score-red { background:rgba(239,68,68,0.15); color:var(--red); border:1px solid var(--red); }
+.score-green { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid var(--green); }
+.score-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+.score-red { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid var(--red); }
 
 /* ═══════════════════════════════════════════
-   AI CHAT
+   FIX 5A: NO-TRADE ZONE DETECTOR
    ═══════════════════════════════════════════ */
-.chat-messages {
-  max-height:400px; overflow-y:auto; padding:10px; display:flex;
-  flex-direction:column; gap:10px;
+.no-trade-detector {
+  padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
+  font-size: 13px;
+}
+.no-trade-detector.warning {
+  background: rgba(239,68,68,0.1); border: 1px solid var(--red); color: var(--red);
+}
+.no-trade-detector.clear {
+  background: rgba(34,197,94,0.1); border: 1px solid var(--green); color: var(--green);
+}
+
+/* ═══════════════════════════════════════════
+   QUICK CHAT
+   ═══════════════════════════════════════════ */
+.chat-container {
+  max-height: 300px; overflow-y: auto; padding: 8px;
+  background: var(--bg); border-radius: 8px; margin-bottom: 8px;
 }
 .chat-msg {
-  padding:10px 14px; border-radius:8px; font-size:13px; max-width:85%;
-  line-height:1.5; white-space:pre-wrap;
+  padding: 8px 12px; border-radius: 8px; margin-bottom: 6px;
+  font-size: 13px; line-height: 1.5; white-space: pre-wrap;
 }
-.chat-msg.user { background:rgba(212,160,23,0.15); color:var(--amber); align-self:flex-end; }
-.chat-msg.ai { background:rgba(167,139,250,0.12); color:var(--text); align-self:flex-start; }
-.chat-msg.ai-claude { background:rgba(167,139,250,0.12); color:var(--text); align-self:flex-start; border-left:3px solid var(--purple); }
-.chat-msg.ai-openai { background:rgba(34,197,94,0.08); color:var(--text); align-self:flex-start; border-left:3px solid var(--green); }
-.chat-msg .chat-time { font-size:10px; color:var(--text-dim); margin-top:4px; display:block; }
-.chat-input-row { display:flex; gap:8px; margin-top:10px; }
-.chat-input-row .input { flex:1; }
+.chat-msg.user { background: rgba(212,160,23,0.1); border-left: 3px solid var(--amber); }
+.chat-msg.ai-claude { background: rgba(167,139,250,0.1); border-left: 3px solid var(--purple); }
+.chat-msg.ai-openai { background: rgba(34,197,94,0.1); border-left: 3px solid var(--green); }
+.chat-time { font-size: 10px; color: var(--text-dim); margin-left: 8px; }
 
 /* ═══════════════════════════════════════════
-   FIX 2: DUAL AI RESULT PANELS
+   FIX 2: DUAL AI PANELS
    ═══════════════════════════════════════════ */
-.dual-ai-panels {
-  display:flex; gap:12px; margin-top:12px;
-}
-.ai-panel {
-  flex:1; background:var(--bg); border:1px solid var(--border); border-radius:10px;
-  padding:16px; min-width:0;
-}
-.ai-panel.full-width { width:100%; }
-.ai-panel-header {
-  font-size:14px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:6px;
-}
-.ai-panel-header.claude { color:var(--purple); }
-.ai-panel-header.openai { color:var(--green); }
-.ai-panel-body {
-  font-size:13px; line-height:1.7; white-space:pre-wrap; word-wrap:break-word;
-}
-.ai-panel-footer {
-  font-size:10px; color:var(--text-dim); margin-top:10px; padding-top:8px;
-  border-top:1px solid var(--border);
-}
-.ai-panel-error { color:var(--red); font-size:13px; }
-.ai-panel-loading {
-  display:flex; align-items:center; gap:8px; color:var(--text-dim); font-size:13px; padding:20px 0;
-}
+.dual-ai-panels { display: flex; gap: 12px; flex-wrap: wrap; }
+.ai-panel { flex: 1; min-width: 280px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.ai-panel.full-width { flex: 1 1 100%; }
+.ai-panel-header { padding: 8px 14px; font-weight: 700; font-size: 13px; }
+.ai-panel-header.claude { background: rgba(167,139,250,0.15); color: var(--purple); }
+.ai-panel-header.openai { background: rgba(34,197,94,0.15); color: var(--green); }
+.ai-panel-body { padding: 14px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+.ai-panel-footer { padding: 6px 14px; font-size: 10px; color: var(--text-dim); border-top: 1px solid var(--border); }
+.ai-panel-error { color: var(--red); }
 
 /* ═══════════════════════════════════════════
-   TOAST NOTIFICATIONS
+   TABS
    ═══════════════════════════════════════════ */
-#toast-container {
-  position:fixed; bottom:20px; right:20px; z-index:9999;
-  display:flex; flex-direction:column; gap:8px;
+.tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.tab-btn {
+  padding: 10px 20px; cursor: pointer; font-size: 13px; font-weight: 600;
+  color: var(--text-dim); border-bottom: 2px solid transparent;
+  transition: all var(--transition);
 }
-.toast {
-  padding:12px 20px; border-radius:8px; font-size:13px; font-weight:500;
-  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
-  max-width:320px;
-}
-.toast-success { background:rgba(34,197,94,0.9); color:#000; }
-.toast-error { background:rgba(239,68,68,0.9); color:#fff; }
-.toast-info { background:rgba(59,130,246,0.9); color:#fff; }
-@keyframes toastIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-@keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(-10px)} }
+.tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
 /* ═══════════════════════════════════════════
-   FIX 5F: LOADING SPINNER — wave animation, bigger dots
-   ═══════════════════════════════════════════ */
-.loading {
-  display:inline-flex; align-items:center; gap:8px; color:var(--amber);
-  font-size:14px;
-}
-.loading-dot {
-  width:10px; height:10px; border-radius:50%; background:var(--amber);
-  animation: dotWave 1.2s ease-in-out infinite;
-}
-.loading-dot:nth-child(2) { animation-delay:0.2s; }
-.loading-dot:nth-child(3) { animation-delay:0.4s; }
-@keyframes dotWave { 0%,100%{opacity:0.3;transform:scale(0.7)} 50%{opacity:1;transform:scale(1.3)} }
-
-/* ═══════════════════════════════════════════
-   DRAG & DROP ZONE
+   ANALYZE TRADE — Drop zones
    ═══════════════════════════════════════════ */
 .drop-zone {
-  border:2px dashed var(--border); border-radius:10px; padding:40px;
-  text-align:center; color:var(--text-dim); cursor:pointer;
-  transition:all var(--transition);
+  border: 2px dashed var(--border); border-radius: 12px;
+  padding: 40px; text-align: center; cursor: pointer;
+  color: var(--text-dim); transition: all var(--transition);
 }
-.drop-zone:hover, .drop-zone.dragover {
-  border-color:var(--amber); color:var(--amber); background:rgba(212,160,23,0.05);
+.drop-zone:hover, .drop-zone.dragover { border-color: var(--amber); color: var(--amber); }
+.context-helper {
+  background: rgba(212,160,23,0.05); border: 1px solid rgba(212,160,23,0.2);
+  border-radius: 8px; padding: 12px 16px; margin-bottom: 12px;
+  font-size: 12px; color: var(--text-dim); cursor: pointer;
 }
-.drop-zone img { max-height:400px; max-width:100%; border-radius:8px; margin-top:12px; }
-
-/* ═══════════════════════════════════════════
-   TABLES
-   ═══════════════════════════════════════════ */
-.data-table {
-  width:100%; border-collapse:collapse; font-size:13px;
-}
-.data-table th {
-  text-align:left; padding:10px 12px; border-bottom:2px solid var(--border);
-  color:var(--text-dim); font-weight:600; cursor:pointer; white-space:nowrap;
-}
-.data-table th:hover { color:var(--amber); }
-.data-table td {
-  padding:10px 12px; border-bottom:1px solid var(--border);
-}
-.data-table tr:hover td { background:rgba(255,255,255,0.02); }
-.data-table .sort-arrow { font-size:10px; margin-left:4px; }
+.context-helper-body { margin-top: 8px; display: none; }
+.context-helper.open .context-helper-body { display: block; }
 
 /* ═══════════════════════════════════════════
    RESULT CARDS
    ═══════════════════════════════════════════ */
 .result-card {
-  background:var(--card); border:1px solid var(--border); border-radius:10px;
-  padding:20px; margin-top:16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; margin-top: 12px;
 }
-.result-row {
-  display:flex; align-items:flex-start; gap:8px; padding:6px 0;
-  border-bottom:1px solid rgba(30,35,48,0.5); font-size:13px;
-}
-.result-label { color:var(--text-dim); min-width:140px; font-weight:600; }
-.result-value { color:var(--text); flex:1; }
-.verdict-take { color:var(--green); font-weight:700; font-size:16px; }
-.verdict-wait { color:var(--yellow); font-weight:700; font-size:16px; }
-.verdict-skip { color:var(--red); font-weight:700; font-size:16px; }
 
 /* ═══════════════════════════════════════════
-   PLAYBOOK SECTIONS
-   ═══════════════════════════════════════════ */
-.playbook-section {
-  background:var(--card); border:1px solid var(--border); border-radius:10px;
-  margin-bottom:12px; overflow:hidden;
-}
-.playbook-header {
-  padding:14px 20px; cursor:pointer; display:flex; align-items:center;
-  justify-content:space-between; font-weight:600; font-size:15px;
-  transition:background var(--transition);
-}
-.playbook-header:hover { background:rgba(255,255,255,0.03); }
-.playbook-content { padding:0 20px 16px; font-size:13px; line-height:1.8; }
-.playbook-content ul { padding-left:20px; }
-.playbook-content li { margin-bottom:4px; }
-.playbook-section.no-trade { border-color:var(--red); }
-.playbook-section.no-trade .playbook-header { color:var(--red); }
-
-/* FIX 5E: Quick Reference Card */
-.quick-ref-card {
-  background:var(--bg); border:1px solid var(--amber); border-radius:10px;
-  padding:16px; margin-bottom:16px;
-}
-.quick-ref-card h3 { color:var(--amber); font-size:14px; margin-bottom:10px; }
-.quick-ref-grid {
-  display:grid; grid-template-columns:1fr 1fr; gap:6px 16px; font-size:12px;
-}
-@media(max-width:600px) { .quick-ref-grid { grid-template-columns:1fr; } }
-.quick-ref-grid .qr-item {
-  padding:5px 8px; background:rgba(212,160,23,0.06); border-radius:4px;
-  border-left:2px solid var(--amber);
-}
-.quick-ref-grid .qr-item strong { color:var(--amber); }
-
-/* ═══════════════════════════════════════════
-   SETTINGS
-   ═══════════════════════════════════════════ */
-.settings-group { margin-bottom:24px; }
-.settings-group h3 { font-size:16px; margin-bottom:12px; color:var(--amber); }
-.setting-row {
-  display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;
-}
-.setting-row label { min-width:160px; font-size:13px; color:var(--text-dim); }
-.password-wrap {
-  position:relative; flex:1; display:flex; gap:8px;
-}
-.password-wrap .input { flex:1; }
-.password-toggle {
-  background:none; border:1px solid var(--border); border-radius:6px;
-  color:var(--text-dim); cursor:pointer; padding:0 10px; font-size:12px;
-}
-
-/* FIX 5D: AI Status Panel */
-.ai-status-panel {
-  display:flex; gap:12px; flex-wrap:wrap; padding:14px; background:var(--bg);
-  border:1px solid var(--border); border-radius:10px; margin-bottom:16px; font-size:13px;
-}
-.ai-status-item { display:flex; align-items:center; gap:6px; }
-
-/* ═══════════════════════════════════════════
-   TABS
-   ═══════════════════════════════════════════ */
-.tabs { display:flex; gap:4px; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:4px; }
-.tab-btn {
-  padding:8px 16px; background:none; border:none; color:var(--text-dim);
-  cursor:pointer; font-size:13px; border-bottom:2px solid transparent;
-  transition:all var(--transition);
-}
-.tab-btn:hover { color:var(--text); }
-.tab-btn.active { color:var(--amber); border-bottom-color:var(--amber); }
-.tab-content { display:none; }
-.tab-content.active { display:block; }
-
-/* ═══════════════════════════════════════════
-   SCANNER RESULT CARDS
-   ═══════════════════════════════════════════ */
-.scan-result {
-  background:var(--card); border:1px solid var(--border); border-radius:10px;
-  padding:16px; margin-bottom:12px;
-}
-.scan-result .instrument-badge {
-  font-size:16px; font-weight:700; color:var(--amber); margin-bottom:8px;
-}
-.rating-strong { color:var(--green); font-weight:700; }
-.rating-moderate { color:var(--yellow); font-weight:700; }
-.rating-weak { color:#f97316; font-weight:700; }
-.rating-nosetup { color:var(--text-dim); font-weight:700; }
-
-/* ═══════════════════════════════════════════
-   STRATEGY CARDS — FIX 3: with descriptions
+   STRATEGY LAB
    ═══════════════════════════════════════════ */
 .strategy-type-card {
-  background:var(--card); border:1px solid var(--border); border-radius:10px;
-  padding:14px; cursor:pointer; text-align:center; transition:all var(--transition);
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; cursor: pointer;
+  transition: all var(--transition);
 }
-.strategy-type-card:hover, .strategy-type-card.selected {
-  border-color:var(--purple); color:var(--purple);
-}
-.strategy-type-card .strat-desc {
-  font-size:11px; color:var(--text-dim); font-style:italic; margin-top:6px;
-  line-height:1.4;
-}
+.strategy-type-card:hover { border-color: var(--purple); }
+.strategy-type-card.selected { border-color: var(--purple); background: rgba(167,139,250,0.08); }
+.strat-desc { font-size: 11px; color: var(--text-dim); margin-top: 6px; font-style: italic; }
 
 /* ═══════════════════════════════════════════
-   METRIC CARDS
+   LONA STEPPER (CHANGE 2)
+   ═══════════════════════════════════════════ */
+.lona-stepper {
+  display: flex; gap: 0; margin-bottom: 24px; overflow-x: auto;
+}
+.lona-step-indicator {
+  flex: 1; text-align: center; padding: 12px 8px; position: relative;
+  font-size: 13px; font-weight: 600; color: var(--text-dim);
+  border-bottom: 3px solid var(--border); transition: all 0.3s ease;
+  cursor: default; min-width: 120px;
+}
+.lona-step-indicator.active {
+  color: var(--purple); border-bottom-color: var(--purple);
+}
+.lona-step-indicator.complete {
+  color: var(--green); border-bottom-color: var(--green);
+}
+.lona-step-indicator .step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%; font-size: 12px;
+  background: var(--border); color: var(--text-dim); margin-right: 6px;
+}
+.lona-step-indicator.active .step-num { background: var(--purple); color: #fff; }
+.lona-step-indicator.complete .step-num { background: var(--green); color: #000; }
+
+.lona-step-content { display: none; }
+.lona-step-content.active { display: block; }
+
+.lona-status {
+  padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  margin: 12px 0;
+}
+.lona-status.pending { background: rgba(167,139,250,0.1); color: var(--purple); animation: pulse 2s infinite; }
+.lona-status.success { background: rgba(34,197,94,0.1); color: var(--green); }
+.lona-status.error { background: rgba(239,68,68,0.1); color: var(--red); }
+
+.lona-metric-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+}
+@media (max-width: 768px) {
+  .lona-stepper { flex-direction: column; }
+  .lona-metric-grid { grid-template-columns: 1fr; }
+}
+.lona-metric-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; text-align: center;
+}
+.lona-metric-value { font-size: 28px; font-weight: 700; }
+.lona-metric-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+.lona-verdict {
+  border: 2px solid var(--amber); border-radius: 10px;
+  padding: 16px; margin-top: 16px;
+  background: rgba(212,160,23,0.05);
+}
+.lona-verdict-header {
+  font-weight: 700; color: var(--amber); margin-bottom: 10px; font-size: 15px;
+}
+
+.lona-tip {
+  background: rgba(167,139,250,0.05); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--text-dim);
+  cursor: pointer; margin-bottom: 12px;
+}
+.lona-tip-body { margin-top: 8px; display: none; }
+.lona-tip.open .lona-tip-body { display: block; }
+
+/* ═══════════════════════════════════════════
+   TRADE JOURNAL
+   ═══════════════════════════════════════════ */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th {
+  text-align: left; padding: 8px; border-bottom: 2px solid var(--border);
+  color: var(--text-dim); font-weight: 600; cursor: pointer;
+  text-transform: uppercase; font-size: 11px;
+}
+.data-table th:hover { color: var(--amber); }
+.data-table td { padding: 8px; border-bottom: 1px solid var(--border); }
+.data-table tr:hover { background: rgba(255,255,255,0.02); }
+
+.journal-glossary {
+  background: rgba(212,160,23,0.05); border: 1px solid rgba(212,160,23,0.2);
+  border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
+  font-size: 12px; cursor: pointer;
+}
+.journal-glossary-body { margin-top: 8px; display: none; line-height: 1.8; color: var(--text-dim); }
+.journal-glossary.open .journal-glossary-body { display: block; }
+
+/* ═══════════════════════════════════════════
+   METRIC CARDS (Journal stats)
    ═══════════════════════════════════════════ */
 .metric-card {
-  background:var(--card); border:1px solid var(--border); border-radius:10px;
-  padding:16px; text-align:center;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; text-align: center;
 }
-.metric-value { font-size:28px; font-weight:700; color:var(--amber); }
-.metric-label { font-size:12px; color:var(--text-dim); margin-top:4px; }
+.metric-value { font-size: 28px; font-weight: 700; }
+.metric-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+.chart-wrap { height: 250px; margin-bottom: 16px; }
 
 /* ═══════════════════════════════════════════
-   FIX 4: Column Glossary
+   RISK CALCULATOR — FIX 5C: presets
    ═══════════════════════════════════════════ */
-.column-glossary {
-  background:var(--bg); border:1px solid var(--border); border-radius:8px;
-  padding:12px 16px; margin-bottom:12px; font-size:12px;
+.risk-output {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin-top: 16px;
 }
-.column-glossary table { width:100%; border-collapse:collapse; }
-.column-glossary td { padding:4px 8px; border-bottom:1px solid var(--border); }
-.column-glossary td:first-child { font-weight:700; color:var(--amber); white-space:nowrap; width:100px; }
-
-/* ═══════════════════════════════════════════
-   FIX 5A: No-Trade Warning
-   ═══════════════════════════════════════════ */
-.no-trade-detector {
-  padding:12px 16px; border-radius:8px; margin-top:12px; font-size:13px; font-weight:600;
+@media (max-width: 768px) { .risk-output { grid-template-columns: 1fr 1fr; } }
+.risk-output-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; text-align: center;
 }
-.no-trade-detector.warning { background:rgba(239,68,68,0.12); color:var(--red); border:1px solid var(--red); }
-.no-trade-detector.clear { background:rgba(34,197,94,0.1); color:var(--green); border:1px solid var(--green); }
+.risk-output-card .ro-val { font-size: 22px; font-weight: 700; color: var(--amber); }
+.risk-output-card .ro-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.risk-presets { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.risk-preset-btn {
+  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); cursor: pointer; font-size: 12px;
+  transition: all var(--transition);
+}
+.risk-preset-btn:hover { border-color: var(--amber); color: var(--amber); }
 
 /* ═══════════════════════════════════════════
-   FIX 5B: Context Helper Tip Box
+   PLAYBOOK — FIX 5E: quick reference card
    ═══════════════════════════════════════════ */
-.tip-box {
-  background:rgba(212,160,23,0.06); border:1px solid rgba(212,160,23,0.2);
-  border-radius:8px; padding:10px 14px; font-size:12px; color:var(--text-dim);
-  margin-bottom:12px; line-height:1.6;
+.playbook-section {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; margin-bottom: 10px; overflow: hidden;
+}
+.playbook-section.no-trade { border-color: var(--red); }
+.playbook-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; cursor: pointer; font-weight: 700; font-size: 14px;
+}
+.playbook-header:hover { background: rgba(255,255,255,0.02); }
+.playbook-content { padding: 0 16px 16px; font-size: 13px; line-height: 1.8; }
+.playbook-content ul { padding-left: 20px; }
+.playbook-content li { margin-bottom: 4px; }
+
+.quick-ref-card {
+  background: rgba(212,160,23,0.05); border: 2px solid var(--amber);
+  border-radius: 12px; padding: 20px; margin-bottom: 20px;
+}
+.quick-ref-card h3 { color: var(--amber); margin-bottom: 12px; font-size: 16px; }
+.quick-ref-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+@media (max-width: 768px) { .quick-ref-grid { grid-template-columns: 1fr; } }
+.quick-ref-item {
+  padding: 8px 12px; background: rgba(212,160,23,0.08);
+  border-radius: 6px; font-size: 12px; font-weight: 600;
+  border-left: 3px solid var(--amber);
 }
 
 /* ═══════════════════════════════════════════
-   FIX 5C: Risk Preset Buttons
+   SETTINGS — FIX 2: dual toggles, FIX 5D: status
    ═══════════════════════════════════════════ */
-.preset-btns { display:flex; gap:8px; margin-bottom:12px; }
+.settings-group { margin-bottom: 16px; }
+.settings-group h3 { font-size: 16px; margin-bottom: 12px; color: var(--amber); }
+.setting-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.setting-row label { min-width: 200px; font-size: 13px; color: var(--text-dim); }
 
-/* ═══════════════════════════════════════════
-   FIX 2: Settings AI Toggle Switches
-   ═══════════════════════════════════════════ */
+.ai-status-panel {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  padding: 12px 16px; background: var(--card);
+  border: 1px solid var(--border); border-radius: 10px;
+  margin-bottom: 16px; font-size: 13px;
+}
+.ai-status-item { padding: 4px 0; }
+
 .ai-toggle-row {
-  display:flex; align-items:center; gap:12px; padding:10px 0;
-  border-bottom:1px solid var(--border); flex-wrap:wrap;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
 }
-.ai-toggle-row .ai-engine-name { font-weight:600; min-width:180px; font-size:14px; }
+.ai-engine-name { font-weight: 700; min-width: 160px; }
+.toggle-switch { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.toggle-track {
+  width: 40px; height: 22px; border-radius: 11px;
+  background: var(--border); position: relative; transition: background 0.2s;
+}
+.toggle-track.on { background: var(--green); }
+.toggle-knob {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; position: absolute; top: 2px; left: 2px;
+  transition: left 0.2s;
+}
+.toggle-track.on .toggle-knob { left: 20px; }
+
+.password-wrap { display: flex; gap: 6px; align-items: center; }
+.password-toggle {
+  padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-dim); cursor: pointer; font-size: 12px;
+}
 
 /* ═══════════════════════════════════════════
-   MISC
+   LOADING ANIMATION — FIX 5F: wave dots
    ═══════════════════════════════════════════ */
-/* FIX 5F: page titles with amber left border */
-.section-title { font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-.divider { height:1px; background:var(--border); margin:20px 0; }
-.collapsible-header {
-  display:flex; align-items:center; justify-content:space-between; cursor:pointer;
-  padding:10px 0;
+.loading { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--amber); }
+.loading-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--amber);
+  animation: wave 1.2s ease-in-out infinite;
 }
-.collapsible-header .arrow { transition:transform var(--transition); }
-.collapsible-header.collapsed .arrow { transform:rotate(-90deg); }
-.badge { padding:3px 8px; border-radius:4px; font-size:11px; font-weight:600; }
-.badge-green { background:rgba(34,197,94,0.2); color:var(--green); }
-.badge-red { background:rgba(239,68,68,0.2); color:var(--red); }
-.badge-yellow { background:rgba(234,179,8,0.2); color:var(--yellow); }
-.badge-blue { background:rgba(59,130,246,0.2); color:var(--blue); }
-.badge-purple { background:rgba(167,139,250,0.2); color:var(--purple); }
-.text-center { text-align:center; }
-.mt-8 { margin-top:8px; }
-.mt-12 { margin-top:12px; }
-.mt-16 { margin-top:16px; }
-.mb-8 { margin-bottom:8px; }
-.mb-12 { margin-bottom:12px; }
-.mb-16 { margin-bottom:16px; }
-.flex-between { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
-.gap-8 { gap:8px; }
-.overflow-x { overflow-x:auto; }
-.hidden { display:none !important; }
-h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-left:12px; border-left:3px solid var(--amber); }
-.filter-bar { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-.filter-bar select, .filter-bar input { padding:6px 10px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:12px; }
-.chart-container { position:relative; height:300px; margin:16px 0; }
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:5000; display:flex; align-items:center; justify-content:center; }
-.modal { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; max-width:420px; width:90%; }
-.modal h3 { margin-bottom:12px; }
-.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes wave { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+/* Lona info card in Settings */
+.lona-info-card {
+  background: rgba(167,139,250,0.05); border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 8px; padding: 12px 16px; margin-top: 12px;
+  font-size: 12px; color: var(--text-dim); line-height: 1.6;
+}
 </style>
 </head>
 <body>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
 <!-- ═══════════════════════════════════════════
      SIDEBAR NAVIGATION
      ═══════════════════════════════════════════ -->
 <nav id="sidebar">
-  <button id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
-  <div class="nav-items">
-    <button class="nav-item active" onclick="goPage(0)" data-page="0">
-      <span class="nav-icon">🏠</span><span class="nav-label">Command Center</span>
-    </button>
-    <button class="nav-item" onclick="goPage(1)" data-page="1">
-      <span class="nav-icon">🔍</span><span class="nav-label">Market Scanner</span>
-    </button>
-    <button class="nav-item" onclick="goPage(2)" data-page="2">
-      <span class="nav-icon">📸</span><span class="nav-label">Analyze Trade</span>
-    </button>
-    <button class="nav-item" onclick="goPage(3)" data-page="3">
-      <span class="nav-icon">📐</span><span class="nav-label">Strategy Lab</span>
-    </button>
-    <button class="nav-item" onclick="goPage(4)" data-page="4">
-      <span class="nav-icon">📋</span><span class="nav-label">Trade Journal</span>
-    </button>
-    <button class="nav-item" onclick="goPage(5)" data-page="5">
-      <span class="nav-icon">🧮</span><span class="nav-label">Risk Calculator</span>
-    </button>
-    <button class="nav-item" onclick="goPage(6)" data-page="6">
-      <span class="nav-icon">📚</span><span class="nav-label">SCI Playbook</span>
-    </button>
-    <button class="nav-item" onclick="goPage(7)" data-page="7">
-      <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
-    </button>
-  </div>
+  <div class="sidebar-toggle" onclick="toggleSidebar()">☰</div>
+  <div class="nav-item active" onclick="goPage(0)"><span class="nav-icon">🎯</span><span class="nav-label">Command Center</span></div>
+  <div class="nav-item" onclick="goPage(1)"><span class="nav-icon">📡</span><span class="nav-label">Market Scanner</span></div>
+  <div class="nav-item" onclick="goPage(2)"><span class="nav-icon">📸</span><span class="nav-label">Analyze Trade</span></div>
+  <div class="nav-item" onclick="goPage(3)"><span class="nav-icon">📐</span><span class="nav-label">Strategy Lab</span></div>
+  <div class="nav-item" onclick="goPage(4)"><span class="nav-icon">📓</span><span class="nav-label">Trade Journal</span></div>
+  <div class="nav-item" onclick="goPage(5)"><span class="nav-icon">🧮</span><span class="nav-label">Risk Calculator</span></div>
+  <div class="nav-item" onclick="goPage(6)"><span class="nav-icon">📖</span><span class="nav-label">SCI Playbook</span></div>
+  <div class="nav-item" onclick="goPage(7)"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></div>
 </nav>
 
-<!-- Mobile Bottom Tab Bar -->
+<!-- MOBILE TABS -->
 <div id="mobile-tabs">
-  <button class="mob-tab active" onclick="goPage(0)"><span class="mob-tab-icon">🏠</span>Home</button>
-  <button class="mob-tab" onclick="goPage(1)"><span class="mob-tab-icon">🔍</span>Scan</button>
-  <button class="mob-tab" onclick="goPage(2)"><span class="mob-tab-icon">📸</span>Analyze</button>
-  <button class="mob-tab" onclick="goPage(3)"><span class="mob-tab-icon">📐</span>Strategy</button>
-  <button class="mob-tab" onclick="goPage(4)"><span class="mob-tab-icon">📋</span>Journal</button>
-  <button class="mob-tab" onclick="goPage(5)"><span class="mob-tab-icon">🧮</span>Risk</button>
-  <button class="mob-tab" onclick="goPage(6)"><span class="mob-tab-icon">📚</span>Playbook</button>
-  <button class="mob-tab" onclick="goPage(7)"><span class="mob-tab-icon">⚙️</span>Settings</button>
+  <span class="mob-tab active" onclick="goPage(0)">🎯</span>
+  <span class="mob-tab" onclick="goPage(1)">📡</span>
+  <span class="mob-tab" onclick="goPage(2)">📸</span>
+  <span class="mob-tab" onclick="goPage(3)">📐</span>
+  <span class="mob-tab" onclick="goPage(4)">📓</span>
+  <span class="mob-tab" onclick="goPage(5)">🧮</span>
+  <span class="mob-tab" onclick="goPage(6)">📖</span>
+  <span class="mob-tab" onclick="goPage(7)">⚙️</span>
 </div>
 
-<div id="toast-container"></div>
-
+<!-- ═══════════════════════════════════════════
+     MAIN CONTENT AREA
+     ═══════════════════════════════════════════ -->
 <div id="main">
 
 <!-- ═══════════════════════════════════════════
      PAGE 1: COMMAND CENTER
      ═══════════════════════════════════════════ -->
 <div class="page active" id="page-0">
-  <!-- FIX 1: Status Bar with two permanent session rows -->
-  <div id="status-bar">
-    <div id="clock">--:--:-- --</div>
-    <div id="date-display">--</div>
-    <div class="session-row" id="london-row">
-      <span class="session-name">LONDON</span>
-      <span class="session-status-badge status-closed" id="london-badge">CLOSED</span>
-      <span class="session-countdown" id="london-countdown">--</span>
-      <span style="font-size:11px;color:var(--text-dim)">2:00 AM – 6:00 AM EST</span>
-      <div class="golden-window-label" id="london-golden">⚡ Golden Window: 2:00 AM – 3:30 AM EST</div>
+  <h2 class="page-title">🎯 Command Center</h2>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div id="clock">--:--:-- EST</div>
+    <div id="date-display">Loading...</div>
+
+    <!-- CHANGE 4: API Status Pills -->
+    <div class="api-status-row">
+      <div class="api-pill" id="pill-claude" onclick="goPage(7)">
+        <span class="dot off" id="pill-claude-dot"></span> Claude
+      </div>
+      <div class="api-pill" id="pill-openai" onclick="goPage(7)">
+        <span class="dot off" id="pill-openai-dot"></span> GPT-4o
+      </div>
+      <div class="api-pill" id="pill-lona" onclick="goPage(7)">
+        <span class="dot off" id="pill-lona-dot"></span> Lona
+      </div>
     </div>
-    <div class="session-row ny-row" id="ny-row">
-      <span class="session-name">NEW YORK ⭐</span>
-      <span style="font-size:10px;color:var(--text-dim)">Primary session</span>
+
+    <!-- London Row -->
+    <div class="session-row" id="london-row">
+      <span class="session-label" style="color:var(--blue)">🇬🇧 London</span>
+      <span class="session-status-badge status-closed" id="london-badge">CLOSED</span>
+      <span class="session-countdown" id="london-countdown"></span>
+      <span id="london-golden" style="font-size:12px"></span>
+    </div>
+
+    <!-- NY Row -->
+    <div class="session-row" id="ny-row">
+      <span class="session-label" style="color:var(--green)">⭐ New York <span style="font-size:11px;color:var(--text-dim)">Primary session</span></span>
       <span class="session-status-badge status-closed" id="ny-badge">CLOSED</span>
-      <span class="session-countdown" id="ny-countdown">--</span>
-      <span style="font-size:11px;color:var(--text-dim)">8:30 AM – 12:00 PM EST</span>
-      <div class="golden-window-label" id="ny-golden">⚡ Golden Window: 8:30 AM – 10:00 AM EST</div>
+      <span class="session-countdown" id="ny-countdown"></span>
+      <span id="ny-golden" style="font-size:12px"></span>
     </div>
   </div>
 
-  <!-- Instrument Panel -->
-  <div class="flex-between mb-12">
-    <div class="section-title">Instrument Panel</div>
-    <button class="btn btn-amber btn-sm" onclick="addInstrument()">+ Add Instrument</button>
+  <!-- Instrument Cards -->
+  <div class="card">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Instruments</span>
+      <button class="btn btn-sm" onclick="addInstrument()">+ Add</button>
+    </div>
+    <div class="grid-2" id="instruments-grid"></div>
   </div>
-  <div id="instruments-grid" class="grid-4"></div>
 
   <!-- Pre-Trade Checklist -->
-  <div class="card mt-16">
+  <div class="card">
     <div class="card-header">Pre-Trade Checklist — <span id="checklist-date"></span></div>
     <div id="checklist-items"></div>
-    <div id="checklist-score" class="mt-12" style="font-size:18px;font-weight:700;text-align:center;"></div>
+    <div style="text-align:center;margin-top:12px">
+      <span style="font-size:28px;font-weight:700;color:var(--amber)" id="checklist-score">0 / 10</span>
+    </div>
     <div id="checklist-banner"></div>
   </div>
 
-  <!-- FIX 5A: No-Trade Zone Detector -->
-  <div id="no-trade-detector-wrap" class="mt-8"></div>
+  <!-- No-Trade Zone Detector -->
+  <div id="no-trade-detector-wrap"></div>
 
   <!-- Quick AI Chat -->
-  <div class="card mt-16">
-    <div class="collapsible-header" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('hidden');">
-      <div class="card-header" style="margin-bottom:0">💬 Quick AI Chat</div>
-      <span class="arrow">▼</span>
+  <div class="card">
+    <div class="card-header" onclick="document.getElementById('quick-chat-body').classList.toggle('hidden')" style="cursor:pointer">
+      Quick AI Chat ▼
     </div>
-    <div>
-      <div class="chat-messages" id="quick-chat-messages"></div>
-      <div class="chat-input-row">
-        <input class="input" id="quick-chat-input" placeholder="Ask your trading assistant..." onkeydown="if(event.key==='Enter')sendQuickChat()">
+    <div id="quick-chat-body">
+      <div class="chat-container" id="quick-chat-messages"></div>
+      <div style="display:flex;gap:8px">
+        <input class="input" id="quick-chat-input" placeholder="Ask the SCI AI anything..." onkeydown="if(event.key==='Enter')sendQuickChat()">
         <button class="btn btn-amber" onclick="sendQuickChat()">Send</button>
       </div>
-      <button class="btn btn-sm mt-8" onclick="goPage(2)">Open Full Analyzer →</button>
     </div>
   </div>
 </div>
@@ -687,50 +709,52 @@ h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-lef
      PAGE 2: MARKET SCANNER
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-1">
-  <h2 class="page-title">🔍 Market Scanner</h2>
+  <h2 class="page-title">📡 Market Scanner</h2>
 
   <div class="card">
-    <div class="card-header" style="color:var(--teal)">Run AI Scan Across All Instruments</div>
+    <div class="card-header" style="color:var(--teal)">AI Scan — All Instruments</div>
     <div class="overflow-x">
-      <table class="data-table" id="scan-table">
-        <thead><tr><th>Instrument</th><th>Current Trend</th><th>ICC Phase</th><th>Upload Chart</th><th>Notes</th></tr></thead>
+      <table class="data-table">
+        <thead><tr>
+          <th>Instrument</th><th>Trend</th><th>ICC Phase</th><th>Chart Upload</th><th>Notes</th>
+        </tr></thead>
         <tbody id="scan-table-body"></tbody>
       </table>
     </div>
-    <button class="btn btn-amber mt-12" onclick="runFullScan()">Run Full Scan →</button>
-    <div id="scan-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Scanning instruments...</div>
-    <div id="scan-results" class="mt-16"></div>
+    <button class="btn btn-amber mt-12" onclick="runFullScan()">Run Full AI Scan →</button>
+    <div id="scan-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Scanning all instruments...</div>
+    <div id="scan-results" class="mt-12"></div>
   </div>
 
   <div class="card">
-    <div class="card-header" style="color:var(--teal)">Identify What You're Seeing</div>
+    <div class="card-header" style="color:var(--teal)">Pattern Identifier</div>
     <div class="grid-2 mb-12">
       <div>
         <label class="label">Instrument</label>
-        <select class="input" id="pattern-instrument"></select>
+        <select class="input" id="pattern-instrument"><option value="">-- Select --</option></select>
       </div>
       <div>
         <label class="label">Screenshot (optional)</label>
-        <input type="file" accept="image/*" class="input" id="pattern-screenshot" style="padding:5px">
+        <input type="file" class="input" id="pattern-screenshot" accept="image/*">
       </div>
     </div>
-    <label class="label">Describe what you see on your chart</label>
-    <textarea class="input mb-12" id="pattern-description" placeholder="e.g. Price broke above the previous swing high on 1H, now pulling back..."></textarea>
+    <label class="label">What do you see?</label>
+    <textarea class="input mb-12" id="pattern-description" placeholder="Describe the pattern..."></textarea>
     <button class="btn btn-amber" onclick="identifyPattern()">Identify Pattern →</button>
     <div id="pattern-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Identifying pattern...</div>
     <div id="pattern-result" class="mt-12"></div>
   </div>
 
   <div class="card">
-    <div class="card-header" style="color:var(--teal)">Generate Today's Pre-Market Brief</div>
+    <div class="card-header" style="color:var(--teal)">Pre-Market Brief Generator</div>
     <div class="grid-2 mb-12">
       <div>
-        <label class="label">Asian Session Notes (optional)</label>
-        <textarea class="input" id="brief-asian" placeholder="What happened in Asian session..."></textarea>
+        <label class="label">Asian Session Notes</label>
+        <textarea class="input" id="brief-asian" placeholder="What happened overnight..."></textarea>
       </div>
       <div>
-        <label class="label">Key Price Levels to Watch (optional)</label>
-        <textarea class="input" id="brief-levels" placeholder="e.g. NQ 18500, Gold 2350..."></textarea>
+        <label class="label">Key Levels to Watch</label>
+        <textarea class="input" id="brief-levels" placeholder="Support/resistance levels..."></textarea>
       </div>
     </div>
     <button class="btn btn-amber" onclick="generateBrief()">Generate Brief →</button>
@@ -744,24 +768,24 @@ h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-lef
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-2">
   <h2 class="page-title">📸 Analyze Trade</h2>
+
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchAnalyzeTab(0)">📸 Screenshot</button>
-    <button class="tab-btn" onclick="switchAnalyzeTab(1)">📝 Manual Form</button>
-    <button class="tab-btn" onclick="switchAnalyzeTab(2)">📊 CSV Import</button>
+    <div class="tab-btn active" onclick="switchAnalyzeTab(0)">Screenshot</div>
+    <div class="tab-btn" onclick="switchAnalyzeTab(1)">Manual Form</div>
+    <div class="tab-btn" onclick="switchAnalyzeTab(2)">CSV Import</div>
   </div>
 
   <!-- Tab A: Screenshot -->
   <div class="tab-content active" id="analyze-tab-0">
-    <!-- FIX 5B: Context Helper -->
-    <div class="tip-box" id="analyze-tip">
-      <div class="collapsible-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.arrow').classList.toggle('collapsed')" style="padding:0">
-        <span>💡 Tips for best AI analysis</span>
-        <span class="arrow" style="font-size:12px">▼</span>
-      </div>
-      <div class="hidden" style="margin-top:8px">
-        For best AI analysis: take your TradingView screenshot showing the full 1H chart.<br>
-        In the notes field below, add: instrument name, timeframe, and current session.<br>
-        <strong>Example:</strong> "NASDAQ 1H chart. NY session open. I see a potential HH forming at 21,500."
+    <div class="context-helper" onclick="this.classList.toggle('open')">
+      💡 Tips for best AI analysis results ▼
+      <div class="context-helper-body">
+        <ul style="padding-left:16px;line-height:1.8">
+          <li>Use a clean chart with session indicators on</li>
+          <li>Mark key swing highs/lows before uploading</li>
+          <li>Include the 1H or 4H timeframe for best structure analysis</li>
+          <li>Add notes about what you see — the AI uses your context</li>
+        </ul>
       </div>
     </div>
     <div class="drop-zone" id="screenshot-drop" onclick="document.getElementById('screenshot-file').click()"
@@ -769,108 +793,114 @@ h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-lef
          ondragleave="this.classList.remove('dragover')"
          ondrop="handleScreenshotDrop(event)">
       <div>📸 Drag & drop a chart screenshot here, or click to upload</div>
-      <div style="font-size:12px;margin-top:8px;color:var(--text-dim)">PNG, JPG, or WEBP</div>
-      <img id="screenshot-preview" style="display:none">
-      <input type="file" id="screenshot-file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handleScreenshotSelect(event)">
+      <input type="file" id="screenshot-file" accept="image/*" style="display:none" onchange="handleScreenshotSelect(event)">
     </div>
-    <label class="label mt-12">Notes — instrument, timeframe, session...</label>
-    <textarea class="input" id="screenshot-notes" placeholder="Add context about this chart..."></textarea>
-    <button class="btn btn-amber mt-12" onclick="analyzeScreenshot()">Analyze Chart →</button>
+    <img id="screenshot-preview" style="display:none;max-height:300px;margin-top:12px;border-radius:8px">
+    <label class="label mt-12">Additional Notes</label>
+    <textarea class="input mb-12" id="screenshot-notes" placeholder="What do you see? What's the context?"></textarea>
+    <button class="btn btn-amber" onclick="analyzeScreenshot()">Analyze Screenshot →</button>
     <div id="screenshot-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Analyzing chart...</div>
     <div id="screenshot-result" class="mt-12"></div>
   </div>
 
   <!-- Tab B: Manual Form -->
   <div class="tab-content" id="analyze-tab-1">
-    <div class="card">
-      <div class="grid-2 mb-12">
-        <div><label class="label">Instrument</label><input class="input" id="manual-instrument" placeholder="e.g. NASDAQ, Gold..."></div>
-        <div>
-          <label class="label">Direction</label>
-          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'manual-dir')" data-val="LONG">LONG</button><button class="btn" onclick="setManualBtn(this,'manual-dir')" data-val="SHORT">SHORT</button></div>
-          <input type="hidden" id="manual-dir">
+    <div class="grid-2 mb-12">
+      <div><label class="label">Instrument</label><input class="input" id="manual-instrument" placeholder="NASDAQ, Gold, BTC..."></div>
+      <div>
+        <label class="label">Direction</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'manual-dir','active-green')" data-val="LONG">LONG</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-dir','active-red')" data-val="SHORT">SHORT</button>
         </div>
+        <input type="hidden" id="manual-dir">
       </div>
-      <div class="grid-2 mb-12">
-        <div>
-          <label class="label">4H Bias</label>
-          <div class="btn-group">
-            <button class="btn" onclick="setManualBtn(this,'manual-4h','active-green')" data-val="BULL">BULL / UPTREND ▲</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-4h','active-red')" data-val="BEAR">BEAR / DOWNTREND ▼</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-4h','active-yellow')" data-val="RANGE">RANGE / CONSOLIDATION ◆</button>
-          </div>
-          <input type="hidden" id="manual-4h">
-        </div>
-        <div>
-          <label class="label">1H Structure</label>
-          <div class="btn-group">
-            <button class="btn" onclick="setManualBtn(this,'manual-1h','active-green')" data-val="BULL">BULL / UPTREND ▲</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-1h','active-red')" data-val="BEAR">BEAR / DOWNTREND ▼</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-1h','active-yellow')" data-val="RANGE">RANGE / CONSOLIDATION ◆</button>
-          </div>
-          <input type="hidden" id="manual-1h">
-        </div>
-      </div>
-      <div class="grid-2 mb-12">
-        <div>
-          <label class="label">Current ICC Phase</label>
-          <div class="btn-group">
-            <button class="btn" onclick="setManualBtn(this,'manual-icc','active-blue')" data-val="INDICATION">INDICATION</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-icc','active-orange')" data-val="CORRECTION">CORRECTION</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-icc','active-green')" data-val="CONTINUATION">CONTINUATION</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-icc','active-gray')" data-val="UNCLEAR">UNCLEAR</button>
-          </div>
-          <input type="hidden" id="manual-icc">
-        </div>
-        <div>
-          <label class="label">Active Session</label>
-          <div class="btn-group">
-            <button class="btn" onclick="setManualBtn(this,'manual-session','active-blue')" data-val="LONDON">LONDON</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-session','active-green')" data-val="NEW YORK">NEW YORK</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-session','active-purple')" data-val="ASIAN">ASIAN</button>
-            <button class="btn" onclick="setManualBtn(this,'manual-session','active-gray')" data-val="OUTSIDE">OUTSIDE SESSION</button>
-          </div>
-          <input type="hidden" id="manual-session">
-        </div>
-      </div>
-      <div class="grid-3 mb-12">
-        <div><label class="label">Swing High</label><input type="number" class="input" id="manual-sh" step="any"></div>
-        <div><label class="label">Swing Low</label><input type="number" class="input" id="manual-sl" step="any"></div>
-        <div><label class="label">Entry Price</label><input type="number" class="input" id="manual-entry" step="any"></div>
-      </div>
-      <div class="grid-3 mb-12">
-        <div><label class="label">Stop Loss</label><input type="number" class="input" id="manual-stop" step="any"></div>
-        <div><label class="label">Target Price</label><input type="number" class="input" id="manual-target" step="any"></div>
-        <div></div>
-      </div>
-      <div class="grid-2 mb-12">
-        <div>
-          <label class="label">Equal Highs Present?</label>
-          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'manual-eqh')" data-val="YES">YES</button><button class="btn" onclick="setManualBtn(this,'manual-eqh')" data-val="NO">NO</button></div>
-          <input type="hidden" id="manual-eqh">
-        </div>
-        <div>
-          <label class="label">Equal Lows Present?</label>
-          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'manual-eql')" data-val="YES">YES</button><button class="btn" onclick="setManualBtn(this,'manual-eql')" data-val="NO">NO</button></div>
-          <input type="hidden" id="manual-eql">
-        </div>
-      </div>
-      <div class="grid-2 mb-12">
-        <div>
-          <label class="label">Attempt at Level</label>
-          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'manual-attempt')" data-val="FIRST">FIRST</button><button class="btn" onclick="setManualBtn(this,'manual-attempt')" data-val="SECOND">SECOND</button></div>
-          <input type="hidden" id="manual-attempt">
-        </div>
-      </div>
-      <label class="label">Notes</label>
-      <textarea class="input mb-12" id="manual-notes" placeholder="Additional context..."></textarea>
-      <button class="btn btn-amber" onclick="analyzeManual()">Analyze Setup →</button>
-      <div id="manual-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Analyzing setup...</div>
-      <div id="manual-result" class="mt-12"></div>
     </div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">4H Bias</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'manual-4h','active-green')" data-val="BULL">BULL</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-4h','active-red')" data-val="BEAR">BEAR</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-4h','active-yellow')" data-val="RANGE">RANGE</button>
+        </div>
+        <input type="hidden" id="manual-4h">
+      </div>
+      <div>
+        <label class="label">1H Structure</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'manual-1h','active-green')" data-val="HH/HL">HH/HL</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-1h','active-red')" data-val="LH/LL">LH/LL</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-1h','active-yellow')" data-val="RANGE">RANGE</button>
+        </div>
+        <input type="hidden" id="manual-1h">
+      </div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">ICC Phase</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'manual-icc','active-blue')" data-val="INDICATION">INDICATION</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-icc','active-orange')" data-val="CORRECTION">CORRECTION</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-icc','active-green')" data-val="CONTINUATION">CONTINUATION</button>
+        </div>
+        <input type="hidden" id="manual-icc">
+      </div>
+      <div>
+        <label class="label">Session</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'manual-session','active-blue')" data-val="London">London</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-session','active-green')" data-val="NY">NY</button>
+        </div>
+        <input type="hidden" id="manual-session">
+      </div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div><label class="label">Swing High</label><input class="input" id="manual-sh" type="number" step="any" placeholder="Price..."></div>
+      <div><label class="label">Swing Low</label><input class="input" id="manual-sl" type="number" step="any" placeholder="Price..."></div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div><label class="label">Entry Price</label><input class="input" id="manual-entry" type="number" step="any" placeholder="Price..."></div>
+      <div><label class="label">Stop Loss</label><input class="input" id="manual-stop" type="number" step="any" placeholder="Price..."></div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div><label class="label">Target</label><input class="input" id="manual-target" type="number" step="any" placeholder="Price..."></div>
+      <div>
+        <label class="label">Equal Highs?</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'manual-eqh','active-red')" data-val="Yes">Yes</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-eqh','active-green')" data-val="No">No</button>
+        </div>
+        <input type="hidden" id="manual-eqh">
+      </div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">Equal Lows?</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'manual-eql','active-red')" data-val="Yes">Yes</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-eql','active-green')" data-val="No">No</button>
+        </div>
+        <input type="hidden" id="manual-eql">
+      </div>
+      <div>
+        <label class="label">Attempt at Level</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'manual-attempt','active-amber')" data-val="1st">1st</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-attempt','active-green')" data-val="2nd">2nd</button>
+          <button class="btn" onclick="setManualBtn(this,'manual-attempt','active-blue')" data-val="3rd+">3rd+</button>
+        </div>
+        <input type="hidden" id="manual-attempt">
+      </div>
+    </div>
+    <label class="label">Notes</label>
+    <textarea class="input mb-12" id="manual-notes" placeholder="Additional context..."></textarea>
+    <button class="btn btn-amber" onclick="analyzeManual()">Analyze Setup →</button>
+    <div id="manual-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Analyzing setup...</div>
+    <div id="manual-result" class="mt-12"></div>
   </div>
 
-  <!-- Tab C: CSV Import -->
+  <!-- Tab C: CSV Import — CHANGE 3: added Lona button -->
   <div class="tab-content" id="analyze-tab-2">
     <div class="drop-zone" id="csv-drop" onclick="document.getElementById('csv-file').click()"
          ondragover="event.preventDefault();this.classList.add('dragover')"
@@ -880,11 +910,14 @@ h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-lef
       <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSVSelect(event)">
     </div>
     <div id="csv-preview" class="mt-12 overflow-x"></div>
+    <div id="csv-lona-btn-wrap" class="hidden mt-12">
+      <button class="btn" style="color:var(--purple);border-color:var(--purple)" onclick="sendCSVToLona()">📊 Send to Lona for Backtest →</button>
+    </div>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════
-     PAGE 4: STRATEGY LAB — FIX 3: descriptions added
+     PAGE 4: STRATEGY LAB — CHANGE 2: Full Lona API integration
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-3">
   <h2 class="page-title">📐 Strategy Lab</h2>
@@ -968,197 +1001,295 @@ h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-lef
     <div id="no-strategies" class="text-center" style="color:var(--text-dim);padding:20px;">No strategies saved yet. Build one above!</div>
   </div>
 
+  <!-- CHANGE 2: Full Lona API Workflow (replaces old export/import) -->
   <div class="card">
-    <div class="card-header" style="color:var(--purple)">Export Strategy for Lona Agency Backtesting</div>
-    <div class="grid-2 mb-12">
-      <div>
-        <label class="label">Select a Saved Strategy</label>
-        <select class="input" id="lona-strategy-select" onchange="generateLonaPrompt()"><option value="">-- Select --</option></select>
+    <div class="card-header" style="color:var(--purple)">🔬 Lona Agency — Strategy Backtesting</div>
+
+    <!-- Stepper -->
+    <div class="lona-stepper">
+      <div class="lona-step-indicator active" id="lona-ind-1" onclick="goLonaStep(1)"><span class="step-num">1</span> Upload Data</div>
+      <div class="lona-step-indicator" id="lona-ind-2" onclick="goLonaStep(2)"><span class="step-num">2</span> Build Strategy</div>
+      <div class="lona-step-indicator" id="lona-ind-3" onclick="goLonaStep(3)"><span class="step-num">3</span> Run Backtest</div>
+      <div class="lona-step-indicator" id="lona-ind-4" onclick="goLonaStep(4)"><span class="step-num">4</span> View Results</div>
+    </div>
+
+    <!-- Step 1: Upload Data -->
+    <div class="lona-step-content active" id="lona-step-1">
+      <h3 style="margin-bottom:8px">Step 1: Upload TradingView Data</h3>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Export your trade history from TradingView as CSV and upload it here.</p>
+
+      <div class="lona-tip" onclick="this.classList.toggle('open')">
+        💡 How to export from TradingView ▼
+        <div class="lona-tip-body">
+          In TradingView → open your chart → Strategy Tester tab → click the download icon → Export trades as CSV
+        </div>
+      </div>
+
+      <div class="drop-zone" id="lona-csv-drop" onclick="document.getElementById('lona-csv-file').click()"
+           ondragover="event.preventDefault();this.classList.add('dragover')"
+           ondragleave="this.classList.remove('dragover')"
+           ondrop="handleLonaCSVDrop(event)">
+        <div>📊 Drag & drop a CSV file here, or click to upload</div>
+        <input type="file" id="lona-csv-file" accept=".csv" style="display:none" onchange="handleLonaCSVSelect(event)">
+      </div>
+
+      <div id="lona-csv-preview" class="mt-12 overflow-x"></div>
+      <div id="lona-upload-status" class="mt-12"></div>
+      <button class="btn btn-amber mt-12 hidden" id="lona-upload-btn" onclick="uploadToLona()">Upload to Lona →</button>
+    </div>
+
+    <!-- Step 2: Build Strategy -->
+    <div class="lona-step-content" id="lona-step-2">
+      <h3 style="margin-bottom:8px">Step 2: Describe Your SCI Strategy</h3>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Tell Lona what strategy to build and backtest.</p>
+
+      <label class="label">Strategy Name</label>
+      <input class="input mb-12" id="lona-strat-name" value="SCI ICC Strategy v1">
+
+      <label class="label">Strategy Description</label>
+      <textarea class="input mb-12" id="lona-strat-desc" rows="10">I trade using the SCI ICC Method — pure price action. My entry rules:
+1. Wait for a swing high or swing low to break on the 1H timeframe (Indication phase)
+2. Wait for price to pull back and grab liquidity (Correction phase)
+3. Enter when 15M shows a structure change confirming continuation (Continuation phase)
+Stop loss: below the swing low for longs, above swing high for shorts
+Minimum 1:3 risk/reward on every trade
+Only trade during New York session (8:30AM-12PM EST)
+Test whether adding a 20 EMA filter on 1H improves win rate.
+Test whether RSI between 40-60 on 15M identifies the correction phase better.
+Report: win rate, average R/R, max drawdown, number of trades, best conditions.</textarea>
+
+      <button class="btn btn-amber" onclick="buildLonaStrategy()">Build Strategy in Lona →</button>
+      <div id="lona-build-status" class="mt-12"></div>
+    </div>
+
+    <!-- Step 3: Run Backtest -->
+    <div class="lona-step-content" id="lona-step-3">
+      <h3 style="margin-bottom:8px">Step 3: Run Backtest</h3>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Lona will test your strategy against the data you uploaded.</p>
+
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Starting Capital ($)</label>
+          <input class="input" id="lona-capital" type="number" value="10000">
+        </div>
+        <div>
+          <label class="label">Commission</label>
+          <button class="btn active-amber" disabled style="cursor:default">0.1% (retail)</button>
+        </div>
+      </div>
+      <div class="grid-2 mb-12">
+        <div>
+          <label class="label">Start Date</label>
+          <input class="input" id="lona-start-date" type="date">
+        </div>
+        <div>
+          <label class="label">End Date</label>
+          <input class="input" id="lona-end-date" type="date">
+        </div>
+      </div>
+
+      <button class="btn btn-amber" id="lona-run-btn" onclick="runLonaBacktest()">Run Backtest →</button>
+      <div id="lona-run-status" class="mt-12"></div>
+    </div>
+
+    <!-- Step 4: View Results -->
+    <div class="lona-step-content" id="lona-step-4">
+      <h3 style="margin-bottom:8px">Step 4: Backtest Results</h3>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Here's how your SCI strategy performed.</p>
+
+      <div id="lona-results-metrics"></div>
+      <div id="lona-results-trades" class="mt-12 overflow-x"></div>
+      <div id="lona-results-verdict" class="mt-12"></div>
+
+      <div class="btn-group mt-12">
+        <button class="btn btn-amber btn-sm" onclick="saveLonaToJournal()">💾 Save Results to Journal</button>
+        <button class="btn btn-sm" onclick="goLonaStep(2)">🔄 Adjust & Retest</button>
+        <button class="btn btn-sm" onclick="goLonaStep(1)">📊 Run on Different Data</button>
       </div>
     </div>
-    <div id="lona-prompt-wrap" class="hidden">
-      <label class="label">Formatted Lona Prompt</label>
-      <textarea class="input" id="lona-prompt" rows="8" readonly></textarea>
-      <button class="btn btn-amber btn-sm mt-8" onclick="navigator.clipboard.writeText(document.getElementById('lona-prompt').value);showToast('Copied to clipboard!','success')">Copy for Lona Agency</button>
-    </div>
-    <div class="divider"></div>
-    <div class="card-header" style="color:var(--purple)">Import Lona Results</div>
-    <textarea class="input mb-12" id="lona-results" placeholder="Paste Lona Agency's backtesting output here..."></textarea>
-    <button class="btn btn-amber" onclick="processLonaResults()">Process & Save Results →</button>
-    <div id="lona-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Processing results...</div>
-    <div id="lona-result-display" class="mt-12"></div>
   </div>
 </div>
 
+
 <!-- ═══════════════════════════════════════════
-     PAGE 5: TRADE JOURNAL — FIX 4: column glossary + renamed headers
+     PAGE 5: TRADE JOURNAL
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-4">
-  <h2 class="page-title">📋 Trade Journal</h2>
+  <h2 class="page-title">📓 Trade Journal</h2>
 
-  <!-- Log Trade Form -->
+  <button class="btn btn-amber mb-12" onclick="document.getElementById('log-trade-form').classList.toggle('hidden')">+ Log New Trade</button>
+
+  <div id="log-trade-form" class="card hidden">
+    <div class="card-header">Log Trade</div>
+    <div class="grid-2 mb-12">
+      <div><label class="label">Date/Time</label><input class="input" id="trade-datetime" type="datetime-local"></div>
+      <div><label class="label">Instrument</label><input class="input" id="trade-instrument" placeholder="NASDAQ, Gold..."></div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">Direction</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'trade-dir','active-green')" data-val="LONG">LONG</button>
+          <button class="btn" onclick="setManualBtn(this,'trade-dir','active-red')" data-val="SHORT">SHORT</button>
+        </div>
+        <input type="hidden" id="trade-dir">
+      </div>
+      <div>
+        <label class="label">Result</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'trade-result','active-green')" data-val="WIN">WIN</button>
+          <button class="btn" onclick="setManualBtn(this,'trade-result','active-red')" data-val="LOSS">LOSS</button>
+          <button class="btn" onclick="setManualBtn(this,'trade-result','active-yellow')" data-val="BREAKEVEN">BE</button>
+        </div>
+        <input type="hidden" id="trade-result">
+      </div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div><label class="label">Entry Price</label><input class="input" id="trade-entry" type="number" step="any"></div>
+      <div><label class="label">Stop Loss</label><input class="input" id="trade-stop" type="number" step="any"></div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div><label class="label">Target 1</label><input class="input" id="trade-t1" type="number" step="any"></div>
+      <div><label class="label">Target 2</label><input class="input" id="trade-t2" type="number" step="any"></div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">T1 Hit?</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'trade-t1hit','active-green')" data-val="Yes">Yes</button>
+          <button class="btn" onclick="setManualBtn(this,'trade-t1hit','active-red')" data-val="No">No</button>
+        </div>
+        <input type="hidden" id="trade-t1hit">
+      </div>
+      <div><label class="label">Exit Price</label><input class="input" id="trade-exit" type="number" step="any"></div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div><label class="label">R Multiple</label><input class="input" id="trade-r" type="number" step="0.1" placeholder="e.g. 2.5"></div>
+      <div>
+        <label class="label">ICC Phase</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'trade-phase','active-blue')" data-val="INDICATION">IND</button>
+          <button class="btn" onclick="setManualBtn(this,'trade-phase','active-orange')" data-val="CORRECTION">COR</button>
+          <button class="btn" onclick="setManualBtn(this,'trade-phase','active-green')" data-val="CONTINUATION">CON</button>
+        </div>
+        <input type="hidden" id="trade-phase">
+      </div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">Session</label>
+        <div class="btn-group">
+          <button class="btn" onclick="setManualBtn(this,'trade-session','active-blue')" data-val="London">London</button>
+          <button class="btn" onclick="setManualBtn(this,'trade-session','active-green')" data-val="NY">NY</button>
+        </div>
+        <input type="hidden" id="trade-session">
+      </div>
+      <div>
+        <label class="label">Strategy Used</label>
+        <select class="input" id="trade-strategy"><option value="Manual SCI">Manual SCI</option></select>
+      </div>
+    </div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">Checklist Score (1-10)</label>
+        <input class="input" id="trade-score" type="number" min="0" max="10" value="0">
+      </div>
+      <div>
+        <label class="label">Screenshot</label>
+        <input class="input" id="trade-screenshot" type="file" accept="image/*">
+      </div>
+    </div>
+    <label class="label">Notes</label>
+    <textarea class="input mb-12" id="trade-notes" placeholder="What happened? What did you learn?"></textarea>
+    <div class="btn-group">
+      <button class="btn btn-amber" onclick="saveTrade()">Save Trade</button>
+      <button class="btn" onclick="aiReviewTrade()">AI Review →</button>
+    </div>
+    <div id="trade-ai-review" class="mt-12"></div>
+  </div>
+
+  <!-- Filters -->
   <div class="card">
-    <div class="collapsible-header collapsed" onclick="this.classList.toggle('collapsed');document.getElementById('log-trade-form').classList.toggle('hidden');">
-      <div class="card-header" style="margin-bottom:0">＋ Log Trade</div>
-      <span class="arrow">▼</span>
+    <div class="grid-3 mb-12" style="gap:8px">
+      <select class="input" id="filter-instrument" onchange="renderJournal()"><option value="">All Instruments</option></select>
+      <select class="input" id="filter-month" onchange="renderJournal()"><option value="">All Months</option></select>
+      <select class="input" id="filter-result" onchange="renderJournal()">
+        <option value="">All Results</option><option value="WIN">WIN</option><option value="LOSS">LOSS</option><option value="BREAKEVEN">BE</option>
+      </select>
     </div>
-    <div id="log-trade-form" class="hidden">
-      <div class="grid-2 mb-12">
-        <div><label class="label">Date/Time</label><input type="datetime-local" class="input" id="trade-datetime"></div>
-        <div><label class="label">Instrument</label><input class="input" id="trade-instrument" placeholder="e.g. NASDAQ"></div>
-      </div>
-      <div class="grid-2 mb-12">
-        <div>
-          <label class="label">Direction</label>
-          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'trade-dir','active-green')" data-val="LONG">LONG</button><button class="btn" onclick="setManualBtn(this,'trade-dir','active-red')" data-val="SHORT">SHORT</button></div>
-          <input type="hidden" id="trade-dir">
-        </div>
-        <div>
-          <label class="label">Result</label>
-          <div class="btn-group">
-            <button class="btn" onclick="setManualBtn(this,'trade-result','active-green')" data-val="WIN">WIN</button>
-            <button class="btn" onclick="setManualBtn(this,'trade-result','active-red')" data-val="LOSS">LOSS</button>
-            <button class="btn" onclick="setManualBtn(this,'trade-result','active-yellow')" data-val="BREAKEVEN">BREAKEVEN</button>
-          </div>
-          <input type="hidden" id="trade-result">
-        </div>
-      </div>
-      <div class="grid-3 mb-12">
-        <div><label class="label">Entry Price</label><input type="number" class="input" id="trade-entry" step="any"></div>
-        <div><label class="label">Stop Price</label><input type="number" class="input" id="trade-stop" step="any"></div>
-        <div><label class="label">Target 1 Price</label><input type="number" class="input" id="trade-t1" step="any"></div>
-      </div>
-      <div class="grid-3 mb-12">
-        <div><label class="label">Target 2 Price</label><input type="number" class="input" id="trade-t2" step="any"></div>
-        <div><label class="label">Final Exit Price</label><input type="number" class="input" id="trade-exit" step="any"></div>
-        <div><label class="label">R Multiple</label><input type="number" class="input" id="trade-r" step="0.1" placeholder="e.g. 2.5 or -1"></div>
-      </div>
-      <div class="grid-2 mb-12">
-        <div>
-          <label class="label">Target 1 Hit?</label>
-          <div class="btn-group"><button class="btn" onclick="setManualBtn(this,'trade-t1hit','active-green')" data-val="YES">YES</button><button class="btn" onclick="setManualBtn(this,'trade-t1hit','active-red')" data-val="NO">NO</button></div>
-          <input type="hidden" id="trade-t1hit">
-        </div>
-        <div>
-          <label class="label">ICC Phase at Entry</label>
-          <div class="btn-group">
-            <button class="btn" onclick="setManualBtn(this,'trade-phase','active-blue')" data-val="INDICATION">INDICATION</button>
-            <button class="btn" onclick="setManualBtn(this,'trade-phase','active-orange')" data-val="CORRECTION">CORRECTION</button>
-            <button class="btn" onclick="setManualBtn(this,'trade-phase','active-green')" data-val="CONTINUATION">CONTINUATION</button>
-          </div>
-          <input type="hidden" id="trade-phase">
-        </div>
-      </div>
-      <div class="grid-2 mb-12">
-        <div>
-          <label class="label">Session</label>
-          <div class="btn-group">
-            <button class="btn" onclick="setManualBtn(this,'trade-session','active-blue')" data-val="LONDON">LONDON</button>
-            <button class="btn" onclick="setManualBtn(this,'trade-session','active-green')" data-val="NEW YORK">NEW YORK</button>
-          </div>
-          <input type="hidden" id="trade-session">
-        </div>
-        <div>
-          <label class="label">Strategy Used</label>
-          <select class="input" id="trade-strategy"><option value="Manual SCI">Manual SCI</option></select>
-        </div>
-      </div>
-      <div class="grid-2 mb-12">
-        <div>
-          <label class="label">Checklist Score at Time of Trade: <span id="trade-score-val">5</span>/10</label>
-          <input type="range" min="0" max="10" value="5" id="trade-score" style="width:100%" oninput="document.getElementById('trade-score-val').textContent=this.value">
-        </div>
-        <div>
-          <label class="label">Screenshot (optional)</label>
-          <input type="file" accept="image/*" class="input" id="trade-screenshot" style="padding:5px">
-        </div>
-      </div>
-      <label class="label">Notes</label>
-      <textarea class="input mb-12" id="trade-notes" placeholder="What happened, what you learned..."></textarea>
-      <div class="btn-group">
-        <button class="btn btn-amber" onclick="saveTrade()">Save Trade</button>
-        <button class="btn" onclick="aiReviewTrade()" style="color:var(--purple);border-color:var(--purple)">AI Review This Trade →</button>
-      </div>
-      <div id="trade-ai-review" class="mt-12"></div>
+    <div class="grid-3 mb-12" style="gap:8px">
+      <select class="input" id="filter-strategy" onchange="renderJournal()"><option value="">All Strategies</option></select>
+      <select class="input" id="filter-session" onchange="renderJournal()">
+        <option value="">All Sessions</option><option value="London">London</option><option value="NY">NY</option>
+      </select>
+      <input class="input" id="filter-search" placeholder="Search notes..." oninput="renderJournal()">
     </div>
   </div>
 
-  <!-- Filter Bar -->
-  <div class="filter-bar">
-    <select id="filter-instrument" onchange="renderJournal()"><option value="">All Instruments</option></select>
-    <select id="filter-month" onchange="renderJournal()"><option value="">All Months</option></select>
-    <select id="filter-result" onchange="renderJournal()"><option value="">All Results</option><option>WIN</option><option>LOSS</option><option>BREAKEVEN</option></select>
-    <select id="filter-strategy" onchange="renderJournal()"><option value="">All Strategies</option></select>
-    <select id="filter-session" onchange="renderJournal()"><option value="">All Sessions</option><option>LONDON</option><option>NEW YORK</option></select>
-    <input class="input" style="max-width:200px" placeholder="Search notes..." id="filter-search" oninput="renderJournal()">
-  </div>
-
-  <!-- FIX 4: Column Glossary -->
-  <div id="column-glossary-wrap">
-    <div class="collapsible-header collapsed" onclick="this.classList.toggle('collapsed');document.getElementById('column-glossary-body').classList.toggle('hidden')" style="padding:6px 0;font-size:13px;color:var(--text-dim);cursor:pointer">
-      <span>❓ What do these columns mean?</span>
-      <span class="arrow" style="font-size:12px">▼</span>
-    </div>
-    <div id="column-glossary-body" class="column-glossary hidden">
-      <table>
-        <tr><td>Direction</td><td>Whether you went LONG (bought, betting price goes up) or SHORT (sold, betting price goes down)</td></tr>
-        <tr><td>Entry</td><td>The price you entered the trade at</td></tr>
-        <tr><td>Exit</td><td>The price you closed/exited the trade at</td></tr>
-        <tr><td>R Multiple</td><td>Risk Multiple — how many times your risk you made or lost. +2.5R means you made 2.5x your risk amount. -1R means you lost your full risk. More useful than dollar amounts.</td></tr>
-        <tr><td>ICC Phase</td><td>Which ICC phase you entered in: Indication, Correction, or Continuation</td></tr>
-        <tr><td>Strategy</td><td>Which saved strategy (from Strategy Lab) you used, or "Manual SCI"</td></tr>
-        <tr><td>Score</td><td>Your pre-trade checklist score out of 10 at the time you took the trade</td></tr>
-        <tr><td>Session</td><td>Whether you traded London (2AM–6AM EST) or New York (8:30AM–12PM EST)</td></tr>
-        <tr><td>Result</td><td>WIN, LOSS, or BREAKEVEN</td></tr>
-      </table>
+  <!-- Column Glossary -->
+  <div class="journal-glossary" onclick="this.classList.toggle('open')">
+    📖 What do these columns mean? ▼
+    <div class="journal-glossary-body">
+      <strong>Date:</strong> When the trade was taken<br>
+      <strong>Instrument:</strong> What you traded (NASDAQ, Gold, etc.)<br>
+      <strong>Direction:</strong> LONG (buy) or SHORT (sell)<br>
+      <strong>Entry:</strong> Price you entered at<br>
+      <strong>Exit:</strong> Price you exited at<br>
+      <strong>R Multiple:</strong> How many R you made/lost (risk units)<br>
+      <strong>ICC Phase:</strong> Which ICC phase you entered during<br>
+      <strong>Strategy:</strong> Which strategy template you used<br>
+      <strong>Score:</strong> Your pre-trade checklist score (out of 10)<br>
+      <strong>Session:</strong> London or NY session<br>
+      <strong>Notes:</strong> Your trade notes and observations
     </div>
   </div>
 
-  <!-- Journal Table — FIX 4: full column names -->
+  <!-- Journal Table -->
   <div class="card overflow-x">
-    <table class="data-table" id="journal-table">
+    <table class="data-table">
       <thead><tr>
-        <th onclick="sortJournal('date')">Date <span class="sort-arrow"></span></th>
-        <th onclick="sortJournal('instrument')">Instrument</th>
-        <th onclick="sortJournal('dir')">Direction</th>
-        <th onclick="sortJournal('entry')">Entry</th>
-        <th onclick="sortJournal('exit')">Exit</th>
-        <th onclick="sortJournal('r')">R Multiple</th>
-        <th onclick="sortJournal('phase')">ICC Phase</th>
-        <th onclick="sortJournal('strategy')">Strategy</th>
-        <th onclick="sortJournal('score')">Score</th>
-        <th onclick="sortJournal('session')">Session</th>
+        <th onclick="sortJournal('date')">Date ↕</th>
+        <th onclick="sortJournal('instrument')">Instrument ↕</th>
+        <th onclick="sortJournal('dir')">Direction ↕</th>
+        <th onclick="sortJournal('entry')">Entry ↕</th>
+        <th onclick="sortJournal('exit')">Exit ↕</th>
+        <th onclick="sortJournal('r')">R Multiple ↕</th>
+        <th onclick="sortJournal('phase')">ICC Phase ↕</th>
+        <th onclick="sortJournal('strategy')">Strategy ↕</th>
+        <th onclick="sortJournal('score')">Score ↕</th>
+        <th onclick="sortJournal('session')">Session ↕</th>
         <th>Notes</th>
       </tr></thead>
       <tbody id="journal-body"></tbody>
     </table>
-    <div id="no-trades" class="text-center" style="color:var(--text-dim);padding:20px;">No trades logged yet.</div>
+    <div id="no-trades" class="text-center" style="color:var(--text-dim);padding:20px">No trades logged yet.</div>
   </div>
 
-  <!-- Stats Panel -->
-  <div class="card mt-16">
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchJournalTab(0)">Overview</button>
-      <button class="tab-btn" onclick="switchJournalTab(1)">Charts</button>
-      <button class="tab-btn" onclick="switchJournalTab(2)">Daily Briefs</button>
+  <!-- Stats Tabs -->
+  <div class="tabs">
+    <div class="tab-btn active" onclick="switchJournalTab(0)">Overview</div>
+    <div class="tab-btn" onclick="switchJournalTab(1)">Charts</div>
+    <div class="tab-btn" onclick="switchJournalTab(2)">Daily Briefs</div>
+  </div>
+
+  <div class="tab-content active" id="journal-stats-0">
+    <div class="grid-4" id="stats-metrics" style="gap:10px"></div>
+  </div>
+
+  <div class="tab-content" id="journal-stats-1">
+    <div class="grid-2">
+      <div class="card"><div class="card-header">Equity Curve</div><div class="chart-wrap"><canvas id="chart-equity"></canvas></div></div>
+      <div class="card"><div class="card-header">Win Rate by Instrument</div><div class="chart-wrap"><canvas id="chart-instrument-wr"></canvas></div></div>
+      <div class="card"><div class="card-header">Win Rate by ICC Phase</div><div class="chart-wrap"><canvas id="chart-phase-wr"></canvas></div></div>
+      <div class="card"><div class="card-header">Win Rate by Session</div><div class="chart-wrap"><canvas id="chart-session-wr"></canvas></div></div>
+      <div class="card"><div class="card-header">Checklist Score vs R</div><div class="chart-wrap"><canvas id="chart-checklist-scatter"></canvas></div></div>
+      <div class="card"><div class="card-header">R Distribution</div><div class="chart-wrap"><canvas id="chart-r-dist"></canvas></div></div>
     </div>
-    <div class="tab-content active" id="journal-stats-0">
-      <div class="grid-4" id="stats-metrics"></div>
-    </div>
-    <div class="tab-content" id="journal-stats-1">
-      <div class="grid-2">
-        <div class="chart-container"><canvas id="chart-equity"></canvas></div>
-        <div class="chart-container"><canvas id="chart-instrument-wr"></canvas></div>
-        <div class="chart-container"><canvas id="chart-phase-wr"></canvas></div>
-        <div class="chart-container"><canvas id="chart-session-wr"></canvas></div>
-        <div class="chart-container"><canvas id="chart-checklist-scatter"></canvas></div>
-        <div class="chart-container"><canvas id="chart-r-dist"></canvas></div>
-      </div>
-    </div>
-    <div class="tab-content" id="journal-stats-2">
-      <div id="briefs-log"></div>
-      <div id="no-briefs" class="text-center" style="color:var(--text-dim);padding:20px;">No daily briefs saved yet.</div>
-    </div>
+  </div>
+
+  <div class="tab-content" id="journal-stats-2">
+    <div id="briefs-log"></div>
+    <div id="no-briefs" class="text-center" style="color:var(--text-dim);padding:20px">No daily briefs saved yet.</div>
   </div>
 
   <div class="btn-group mt-12">
@@ -1168,103 +1299,117 @@ h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-lef
 </div>
 
 <!-- ═══════════════════════════════════════════
-     PAGE 6: RISK CALCULATOR — FIX 5C: presets
+     PAGE 6: RISK CALCULATOR
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-5">
   <h2 class="page-title">🧮 Risk Calculator</h2>
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-header">Inputs</div>
-      <label class="label">Account Size ($)</label>
-      <input type="number" class="input mb-12" id="risk-account" step="any" oninput="calcRisk()" placeholder="e.g. 50000">
-      <label class="label">Risk Per Trade</label>
-      <div class="btn-group mb-12">
-        <button class="btn" onclick="setRiskPct(1)" data-val="1">1%</button>
-        <button class="btn" onclick="setRiskPct(2)" data-val="2">2%</button>
-        <button class="btn" onclick="setRiskPct(3)" data-val="3">3%</button>
-        <button class="btn" onclick="setRiskPct('custom')" data-val="custom">Custom</button>
+
+  <div class="card">
+    <div class="card-header">Quick Presets</div>
+    <div class="risk-presets">
+      <button class="risk-preset-btn" onclick="setRiskPreset('NASDAQ')">NASDAQ</button>
+      <button class="risk-preset-btn" onclick="setRiskPreset('Gold')">Gold</button>
+      <button class="risk-preset-btn" onclick="setRiskPreset('BTC')">BTC</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Position Sizing</div>
+    <div class="grid-2 mb-12">
+      <div>
+        <label class="label">Account Size ($)</label>
+        <input class="input" id="risk-account" type="number" value="10000" oninput="calcRisk()">
       </div>
-      <input type="number" class="input mb-12 hidden" id="risk-custom-pct" step="0.1" placeholder="Custom %" oninput="calcRisk()">
+      <div>
+        <label class="label">Instrument</label>
+        <input class="input" id="risk-instrument" placeholder="NASDAQ, Gold, BTC..." oninput="calcRisk()">
+      </div>
+    </div>
+    <div class="mb-12">
+      <label class="label">Risk %</label>
+      <div class="btn-group">
+        <button class="btn" data-val="1" onclick="setRiskPct(1)">1%</button>
+        <button class="btn" data-val="2" onclick="setRiskPct(2)">2%</button>
+        <button class="btn" data-val="3" onclick="setRiskPct(3)">3%</button>
+        <button class="btn" onclick="setRiskPct('custom')">Custom</button>
+      </div>
       <input type="hidden" id="risk-pct-val" value="1">
-      <label class="label">Instrument Name (optional)</label>
-      <input class="input mb-12" id="risk-instrument" placeholder="e.g. NASDAQ" oninput="calcRisk()">
-      <label class="label">Entry Price</label>
-      <input type="number" class="input mb-12" id="risk-entry" step="any" oninput="calcRisk()">
-      <label class="label">Stop Loss Price</label>
-      <input type="number" class="input mb-12" id="risk-stop" step="any" oninput="calcRisk()">
-      <!-- FIX 5C: Quick Presets -->
-      <div class="preset-btns">
-        <button class="btn btn-sm" onclick="applyRiskPreset('NASDAQ')">NASDAQ Preset</button>
-        <button class="btn btn-sm" onclick="applyRiskPreset('Gold')">Gold Preset</button>
-        <button class="btn btn-sm" onclick="applyRiskPreset('BTC')">BTC Preset</button>
-      </div>
+      <input class="input hidden mt-8" id="risk-custom-pct" type="number" step="0.5" placeholder="Custom %" oninput="calcRisk()" style="max-width:120px">
     </div>
-    <div class="card">
-      <div class="card-header">Outputs</div>
-      <div id="risk-outputs">
-        <div class="metric-card mb-12"><div class="metric-label">Stop Distance</div><div class="metric-value" id="ro-distance">--</div></div>
-        <div class="metric-card mb-12"><div class="metric-label">Dollar Amount at Risk</div><div class="metric-value" id="ro-dollar">--</div></div>
-        <div class="metric-card mb-12"><div class="metric-label">Position Size</div><div class="metric-value" id="ro-size">--</div></div>
-        <div class="grid-3 mb-12">
-          <div class="metric-card"><div class="metric-label">Target 1:2</div><div class="metric-value" style="font-size:16px" id="ro-t2">--</div></div>
-          <div class="metric-card"><div class="metric-label">Target 1:3</div><div class="metric-value" style="font-size:16px" id="ro-t3">--</div></div>
-          <div class="metric-card"><div class="metric-label">Target 1:5</div><div class="metric-value" style="font-size:16px" id="ro-t5">--</div></div>
-        </div>
-        <div class="metric-card mb-12"><div class="metric-label">Max Positions Before 10% Drawdown</div><div class="metric-value" id="ro-maxpos">--</div></div>
-      </div>
-      <div id="risk-warnings" class="mt-12"></div>
-      <div id="risk-instrument-note" class="mt-12" style="font-size:13px;color:var(--text-dim);padding:10px;background:var(--bg);border-radius:6px;"></div>
-      <button class="btn btn-amber mt-12" onclick="riskToJournal()">Log to Journal →</button>
+    <div class="grid-2 mb-12">
+      <div><label class="label">Entry Price</label><input class="input" id="risk-entry" type="number" step="any" oninput="calcRisk()"></div>
+      <div><label class="label">Stop Loss Price</label><input class="input" id="risk-stop" type="number" step="any" oninput="calcRisk()"></div>
     </div>
+
+    <div id="risk-instrument-note" style="font-size:12px;color:var(--text-dim);margin-bottom:12px;font-style:italic"></div>
+    <div id="risk-warnings"></div>
+
+    <div class="risk-output">
+      <div class="risk-output-card"><div class="ro-val" id="ro-distance">--</div><div class="ro-label">Stop Distance</div></div>
+      <div class="risk-output-card"><div class="ro-val" id="ro-dollar">--</div><div class="ro-label">Dollar Risk</div></div>
+      <div class="risk-output-card"><div class="ro-val" id="ro-size">--</div><div class="ro-label">Position Size</div></div>
+      <div class="risk-output-card"><div class="ro-val" id="ro-t2">--</div><div class="ro-label">1:2 Target</div></div>
+      <div class="risk-output-card"><div class="ro-val" id="ro-t3">--</div><div class="ro-label">1:3 Target</div></div>
+      <div class="risk-output-card"><div class="ro-val" id="ro-t5">--</div><div class="ro-label">1:5 Target</div></div>
+    </div>
+    <div style="text-align:center;margin-top:12px">
+      <span style="font-size:12px;color:var(--text-dim)">Max Simultaneous Positions (10% rule): </span>
+      <span style="font-weight:700;color:var(--amber)" id="ro-maxpos">--</span>
+    </div>
+
+    <div class="divider"></div>
+    <button class="btn btn-amber" onclick="logRiskToJournal()">Log to Journal →</button>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════
-     PAGE 7: SCI PLAYBOOK — FIX 5E: Quick Reference Card
+     PAGE 7: SCI PLAYBOOK
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-6">
-  <h2 class="page-title">📚 SCI Playbook</h2>
+  <h2 class="page-title">📖 SCI Playbook</h2>
 
-  <!-- FIX 5E: Permanent Quick Reference Card -->
+  <!-- Quick Reference Card -->
   <div class="quick-ref-card">
-    <h3>SCI Core Rules — Always On Screen</h3>
+    <h3>SCI Core Rules — Quick Reference</h3>
     <div class="quick-ref-grid">
-      <div class="qr-item"><strong>HH + HL</strong> = BULL / UPTREND → <strong>LONG only</strong></div>
-      <div class="qr-item"><strong>LH + LL</strong> = BEAR / DOWNTREND → <strong>SHORT only</strong></div>
-      <div class="qr-item"><strong>Equal highs + equal lows</strong> = RANGE → <strong>STAY OUT</strong></div>
-      <div class="qr-item"><strong>London:</strong> 2AM–6AM EST | <strong>NY:</strong> 8:30AM–12PM EST</div>
-      <div class="qr-item">Minimum <strong>1:3 R/R</strong> on every trade</div>
-      <div class="qr-item">Stop <strong>BELOW</strong> swing low (longs) / <strong>ABOVE</strong> swing high (shorts)</div>
-      <div class="qr-item"><strong>NEVER</strong> enter the first breakout — wait for correction</div>
-      <div class="qr-item"><strong>NEVER</strong> trade the Asian session</div>
+      <div class="quick-ref-item">1. Trade ICC phases in sequence: Indication → Correction → Continuation</div>
+      <div class="quick-ref-item">2. NEVER enter on the first breakout — wait for correction</div>
+      <div class="quick-ref-item">3. All timeframes must align: 4H → 1H → 15M</div>
+      <div class="quick-ref-item">4. Only trade during London (2-6AM) or NY (8:30AM-12PM) EST</div>
+      <div class="quick-ref-item">5. Minimum 1:3 risk/reward on every trade</div>
+      <div class="quick-ref-item">6. Stop loss at structural level — give trades room</div>
+      <div class="quick-ref-item">7. Equal highs + equal lows = NO TRADE</div>
+      <div class="quick-ref-item">8. One good trade per day is enough — patience is the edge</div>
     </div>
   </div>
 
-  <input class="input mb-16" id="playbook-search" placeholder="Search playbook..." oninput="searchPlaybook()">
+  <input class="input mb-12" id="playbook-search" placeholder="Search playbook..." oninput="searchPlaybook()">
   <div id="playbook-sections"></div>
-  <div class="card mt-16">
-    <div class="card-header">Suggest a Rule to Add</div>
-    <textarea class="input mb-12" id="playbook-new-rule" placeholder="Type your new rule idea..."></textarea>
-    <button class="btn btn-amber" onclick="suggestPlaybookRule()">Add to Playbook →</button>
+
+  <div class="card mt-12">
+    <div class="card-header">Add Custom Rule</div>
+    <textarea class="input mb-12" id="playbook-new-rule" placeholder="Type a rule idea..."></textarea>
+    <button class="btn btn-amber" onclick="suggestPlaybookRule()">AI Suggest & Format →</button>
     <div id="playbook-loading" class="loading hidden mt-12"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div> Formatting rule...</div>
     <div id="playbook-suggestion" class="mt-12"></div>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════
-     PAGE 8: SETTINGS — FIX 2: dual toggles, FIX 5D: AI status
+     PAGE 8: SETTINGS — CHANGE 1: Lona API key added
      ═══════════════════════════════════════════ -->
 <div class="page" id="page-7">
   <h2 class="page-title">⚙️ Settings</h2>
 
-  <!-- FIX 5D: AI Status Indicator -->
+  <!-- AI Status Indicator -->
   <div class="ai-status-panel" id="ai-status-panel">
     <div class="ai-status-item" id="ai-status-claude">🤖 Claude: <span>--</span></div>
     <div class="ai-status-item" id="ai-status-openai">🤖 GPT-4o: <span>--</span></div>
+    <div class="ai-status-item" id="ai-status-lona">📊 Lona: <span>--</span></div>
     <div class="ai-status-item" id="ai-status-dual">--</div>
   </div>
 
-  <!-- AI Configuration — FIX 2: dual toggles instead of radio -->
+  <!-- AI Configuration -->
   <div class="card">
     <div class="settings-group">
       <h3>AI Configuration</h3>
@@ -1303,6 +1448,25 @@ h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-lef
     </div>
   </div>
 
+  <!-- CHANGE 1: Lona Agency API Key -->
+  <div class="card">
+    <div class="settings-group">
+      <h3>Lona Agency API</h3>
+      <div class="ai-toggle-row">
+        <span class="ai-engine-name" style="color:var(--purple)">📊 Lona Agency</span>
+        <div class="password-wrap" style="flex:1">
+          <input type="password" class="input" id="set-lona-key" placeholder="Lona API key...">
+          <button class="password-toggle" onclick="togglePw(this)">Show</button>
+          <button class="btn btn-sm" onclick="testLona()">Test Connection →</button>
+        </div>
+      </div>
+      <div id="lona-test-status" class="mt-8"></div>
+      <div class="lona-info-card">
+        Lona powers your strategy backtesting. Upload TradingView CSV data, describe your SCI strategy, run a backtest, and see results — all without leaving this dashboard.
+      </div>
+    </div>
+  </div>
+
   <!-- Account Defaults -->
   <div class="card">
     <div class="settings-group">
@@ -1323,15 +1487,6 @@ h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-lef
         <label>Timezone</label>
         <input class="input" id="set-timezone" value="EST" style="max-width:100px" onchange="saveSettings()">
       </div>
-    </div>
-  </div>
-
-  <!-- Lona Agency Info -->
-  <div class="card">
-    <div class="settings-group">
-      <h3>Lona Agency</h3>
-      <p style="font-size:13px;color:var(--text-dim);margin-bottom:12px">Lona Agency runs inside ChatGPT. Use Strategy Lab (page 4) to design strategies, export them to Lona for backtesting, then import results back here.</p>
-      <button class="btn" onclick="goPage(3)">Go to Strategy Lab →</button>
     </div>
   </div>
 
@@ -1364,9 +1519,13 @@ h2.page-title { font-size:24px; font-weight:700; margin-bottom:20px; padding-lef
   </div>
 </div>
 
+
+<!-- Toast Container -->
+<div id="toast-container" style="position:fixed;top:16px;right:16px;z-index:10000;display:flex;flex-direction:column;gap:8px"></div>
+
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   SCI TRADING COMMAND CENTER — COMPLETE JAVASCRIPT (v2 with all fixes)
+   SCI TRADING COMMAND CENTER — COMPLETE JAVASCRIPT (v4 with Lona API)
    ═══════════════════════════════════════════════════════════════ */
 
 // ─────────────────────────────────────────────
@@ -1574,7 +1733,7 @@ function showConfirm(title, message, cb) {
 function closeConfirm() { document.getElementById('confirm-modal').classList.add('hidden'); confirmCallback=null; }
 
 // ─────────────────────────────────────────────
-// FIX 2: DUAL AI ENGINE — callAI() calls BOTH engines
+// DUAL AI ENGINE — callAI() calls BOTH engines
 // ─────────────────────────────────────────────
 function getSystemPrompt() {
   return localStorage.getItem('sci_system_prompt') || DEFAULT_SYSTEM_PROMPT;
@@ -1632,7 +1791,6 @@ async function callOpenAIRaw(userMessage, imageBase64, systemPrompt) {
   } catch(e) { clearTimeout(timer); throw e; }
 }
 
-// Returns { claude: text|null, openai: text|null, claudeError: msg|null, openaiError: msg|null }
 async function callAI(userMessage, imageBase64=null, customSystem=null) {
   const systemPrompt = customSystem || getSystemPrompt();
   const claudeOn = isClaudeEnabled() && !!localStorage.getItem('sci_anthropic_key');
@@ -1658,7 +1816,6 @@ async function callAI(userMessage, imageBase64=null, customSystem=null) {
   return out;
 }
 
-// Helper: render dual AI result panels
 function renderDualResult(result) {
   const hasClaude = result.claude || result.claudeError;
   const hasOpenai = result.openai || result.openaiError;
@@ -1685,7 +1842,6 @@ function renderDualResult(result) {
   return html;
 }
 
-// Helper: get first available text from dual result
 function getFirstText(result) {
   return result.claude || result.openai || '';
 }
@@ -1701,7 +1857,7 @@ function setManualBtn(btn, hiddenId, activeClass) {
 }
 
 // ─────────────────────────────────────────────
-// FIX 1: STATUS BAR — Two permanent session rows + Golden Windows
+// STATUS BAR — Two permanent session rows + Golden Windows
 // ─────────────────────────────────────────────
 function updateStatusBar() {
   const now = new Date();
@@ -1734,7 +1890,7 @@ function updateStatusBar() {
     londonBadge.className = 'session-status-badge status-open-london';
     const rem = londonEnd - totalMin;
     londonCountdown.textContent = `Closes in ${Math.floor(rem/60)}h ${rem%60}m`;
-    londonRow.classList.add('ny-open'); // reuse glow style
+    londonRow.classList.add('ny-open');
     londonRow.style.borderColor = 'var(--blue)';
     londonRow.style.boxShadow = '0 0 12px rgba(59,130,246,0.2)';
   } else {
@@ -1750,7 +1906,6 @@ function updateStatusBar() {
     }
   }
 
-  // London Golden Window
   if(totalMin >= londonGoldenStart && totalMin < londonGoldenEnd) {
     londonGolden.innerHTML = '<span class="golden-now">⚡ GOLDEN WINDOW — PRIME TIME NOW</span>';
     londonRow.classList.add('golden-active');
@@ -1794,7 +1949,6 @@ function updateStatusBar() {
     }
   }
 
-  // NY Golden Window
   if(totalMin >= nyGoldenStart && totalMin < nyGoldenEnd) {
     nyGolden.innerHTML = '<span class="golden-now">⚡ GOLDEN WINDOW — PRIME TIME NOW</span>';
     nyRow.classList.add('golden-active');
@@ -1812,12 +1966,32 @@ function updateStatusBar() {
     nyGolden.innerHTML = `<span class="golden-waiting">⚡ Golden Window in ${Math.floor(rem/60)}h ${rem%60}m</span>`;
     nyRow.classList.remove('golden-active');
   }
+
+  // Update API status pills
+  updateAPIStatusPills();
 }
 setInterval(updateStatusBar, 1000);
 updateStatusBar();
 
 // ─────────────────────────────────────────────
-// PAGE 1: INSTRUMENT CARDS — FIX 5F: green glow when active
+// CHANGE 4: API STATUS PILLS on Command Center
+// ─────────────────────────────────────────────
+function updateAPIStatusPills() {
+  const claudeKey = localStorage.getItem('sci_anthropic_key');
+  const openaiKey = localStorage.getItem('sci_openai_key');
+  const lonaKey = localStorage.getItem('sci_lona_key');
+
+  const el = document.getElementById('api-status-pills');
+  if(!el) return;
+  el.innerHTML = `
+    <span class="api-pill ${claudeKey ? 'connected' : 'disconnected'}" onclick="${claudeKey ? '' : 'goPage(7)'}">🤖 Claude: ${claudeKey ? '✅' : '❌'}</span>
+    <span class="api-pill ${openaiKey ? 'connected' : 'disconnected'}" onclick="${openaiKey ? '' : 'goPage(7)'}">🤖 GPT-4o: ${openaiKey ? '✅' : '❌'}</span>
+    <span class="api-pill ${lonaKey ? 'connected' : 'disconnected'}" onclick="${lonaKey ? '' : 'goPage(7)'}">📊 Lona: ${lonaKey ? '✅' : '❌'}</span>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// PAGE 1: INSTRUMENT CARDS
 // ─────────────────────────────────────────────
 const defaultInstruments = [
   { name:'NASDAQ', trend:'', icc:'', active:false, notes:'', updated:'' },
@@ -1998,7 +2172,7 @@ function updateChecklistScore() {
 }
 
 // ─────────────────────────────────────────────
-// FIX 5A: NO-TRADE ZONE DETECTOR
+// NO-TRADE ZONE DETECTOR
 // ─────────────────────────────────────────────
 function updateNoTradeDetector() {
   const wrap = document.getElementById('no-trade-detector-wrap');
@@ -2035,7 +2209,7 @@ function updateNoTradeDetector() {
 setInterval(updateNoTradeDetector, 60000);
 
 // ─────────────────────────────────────────────
-// PAGE 1: QUICK AI CHAT — FIX 2: dual responses
+// PAGE 1: QUICK AI CHAT — dual responses
 // ─────────────────────────────────────────────
 let quickChatHistory = [];
 
@@ -2073,7 +2247,7 @@ function renderQuickChat() {
 }
 
 // ─────────────────────────────────────────────
-// PAGE 2: MARKET SCANNER — FIX 2: dual AI results
+// PAGE 2: MARKET SCANNER
 // ─────────────────────────────────────────────
 let scanCharts = {};
 
@@ -2205,7 +2379,7 @@ function saveBrief(date, btn) {
 }
 
 // ─────────────────────────────────────────────
-// PAGE 3: ANALYZE TRADE — FIX 2: dual AI results
+// PAGE 3: ANALYZE TRADE
 // ─────────────────────────────────────────────
 let screenshotBase64 = null;
 
@@ -2342,15 +2516,17 @@ async function askFollowUp(btn) {
 
 // CSV Import
 let csvData = [];
+let csvFileForLona = null;
+
 function handleCSVDrop(e) {
   e.preventDefault();
   e.currentTarget.classList.remove('dragover');
   const file = e.dataTransfer.files[0];
-  if(file) parseCSV(file);
+  if(file) { csvFileForLona = file; parseCSV(file); }
 }
 function handleCSVSelect(e) {
   const file = e.target.files[0];
-  if(file) parseCSV(file);
+  if(file) { csvFileForLona = file; parseCSV(file); }
 }
 
 function parseCSV(file) {
@@ -2408,7 +2584,10 @@ function renderCSVPreview() {
   });
   html += '</tbody></table>';
   if(dataRows.length > 20) html += `<div style="color:var(--text-dim);font-size:12px;padding:8px">Showing first 20 of ${dataRows.length} rows</div>`;
-  html += `<button class="btn btn-amber mt-12" onclick="importCSVToJournal()">Import ${dataRows.length} trades to Journal</button></div>`;
+  html += `<div class="btn-group mt-12">
+    <button class="btn btn-amber" onclick="importCSVToJournal()">Import ${dataRows.length} trades to Journal</button>
+    <button class="btn" onclick="sendCSVToLona()">📊 Send to Lona for Backtest →</button>
+  </div></div>`;
   document.getElementById('csv-preview').innerHTML = html;
 }
 
@@ -2441,8 +2620,18 @@ function importCSVToJournal() {
   goPage(4);
 }
 
+// CHANGE 3: Send CSV to Lona for backtest
+function sendCSVToLona() {
+  if(!csvFileForLona) { showToast('No CSV file loaded','error'); return; }
+  // Store the file reference for Lona Step 1
+  window._lonaCSVFile = csvFileForLona;
+  window._lonaCSVSkipUpload = true;
+  goPage(3);
+  showToast('CSV ready — complete Steps 2-4 in Strategy Lab to backtest');
+}
+
 // ─────────────────────────────────────────────
-// PAGE 4: STRATEGY LAB — FIX 2: dual AI, FIX 3: descriptions in HTML
+// PAGE 4: STRATEGY LAB — with full Lona API integration
 // ─────────────────────────────────────────────
 function selectStrategyType(card, type) {
   document.querySelectorAll('.strategy-type-card').forEach(c => c.classList.remove('selected'));
@@ -2567,24 +2756,9 @@ function deleteStrategy(idx) {
 
 function updateStrategyDropdowns() {
   const strategies = JSON.parse(localStorage.getItem('sci_strategies') || '[]');
-  const lonaSelect = document.getElementById('lona-strategy-select');
   const tradeSelect = document.getElementById('trade-strategy');
-
-  lonaSelect.innerHTML = '<option value="">-- Select --</option>' +
-    strategies.map((s,i) => `<option value="${i}">${escHtml(s.name)}</option>`).join('');
-
   tradeSelect.innerHTML = '<option value="Manual SCI">Manual SCI</option>' +
     strategies.map(s => `<option value="${escHtml(s.name)}">${escHtml(s.name)}</option>`).join('');
-}
-
-function generateLonaPrompt() {
-  const idx = document.getElementById('lona-strategy-select').value;
-  if(idx === '') { document.getElementById('lona-prompt-wrap').classList.add('hidden'); return; }
-  const strategies = JSON.parse(localStorage.getItem('sci_strategies') || '[]');
-  const s = strategies[idx];
-  const prompt = `Backtest the following trading strategy using historical data:\n\nStrategy: ${s.name}\nType: ${s.type}\nInstruments: ${s.instruments}\n\nRules:\n${s.rules}\n\nPlease test across at least 50 trades and provide:\n- Win rate\n- Average R multiple\n- Maximum drawdown\n- Best performing instrument\n- Best performing session\n- Equity curve description\n- Recommendations for improvement`;
-  document.getElementById('lona-prompt').value = prompt;
-  document.getElementById('lona-prompt-wrap').classList.remove('hidden');
 }
 
 function exportForLona(btn) {
@@ -2601,23 +2775,388 @@ function addToPlaybook(btn) {
   showToast('Added to Playbook!');
 }
 
-async function processLonaResults() {
-  const results = document.getElementById('lona-results').value.trim();
-  if(!results) { showToast('Paste Lona results first','error'); return; }
+// ─────────────────────────────────────────────
+// CHANGE 2: FULL LONA API INTEGRATION — 4-step stepper
+// ─────────────────────────────────────────────
+let lonaState = {
+  symbolId: null,
+  strategyId: null,
+  reportId: null,
+  step: 1
+};
 
-  document.getElementById('lona-loading').classList.remove('hidden');
-  try {
-    const result = await callAI(`Summarize these backtesting results from Lona Agency and provide key insights:\n\n${results}`);
-    document.getElementById('lona-result-display').innerHTML = `<div class="result-card">${renderDualResult(result)}</div>`;
-    showToast('Results processed!');
-  } catch(e) {
-    showToast('Error: '+e.message, 'error');
+function getLonaKey() {
+  return localStorage.getItem('sci_lona_key') || '';
+}
+
+function requireLonaKey() {
+  if(!getLonaKey()) {
+    showToast('Add your Lona API key in Settings first', 'error');
+    document.getElementById('lona-no-key-msg').classList.remove('hidden');
+    return false;
   }
-  document.getElementById('lona-loading').classList.add('hidden');
+  document.getElementById('lona-no-key-msg').classList.add('hidden');
+  return true;
+}
+
+async function lonaFetch(url, options = {}) {
+  const key = getLonaKey();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60000);
+  const headers = { 'Authorization': 'Bearer ' + key, ...options.headers };
+  try {
+    const res = await fetch('https://gateway.lona.agency' + url, {
+      ...options, headers, signal: controller.signal
+    });
+    clearTimeout(timer);
+    if(!res.ok) {
+      const errText = await res.text().catch(() => 'Unknown error');
+      throw new Error(`Lona API error (${res.status}): ${errText}`);
+    }
+    return res;
+  } catch(e) {
+    clearTimeout(timer);
+    if(e.name === 'AbortError') throw new Error('Lona API request timed out (60s). Try again.');
+    if(e.message.includes('Failed to fetch') || e.message.includes('NetworkError'))
+      throw new Error('Lona API unreachable — check your connection');
+    throw e;
+  }
+}
+
+function setLonaStep(step) {
+  lonaState.step = step;
+  for(let i = 1; i <= 4; i++) {
+    const stepEl = document.getElementById('lona-step-' + i);
+    const contentEl = document.getElementById('lona-step-content-' + i);
+    const numEl = document.getElementById('lona-step-num-' + i);
+    if(i < step) {
+      stepEl.className = 'lona-step completed';
+      contentEl.classList.add('hidden');
+      numEl.textContent = '✓';
+    } else if(i === step) {
+      stepEl.className = 'lona-step active';
+      contentEl.classList.remove('hidden');
+      numEl.textContent = i;
+    } else {
+      stepEl.className = 'lona-step';
+      contentEl.classList.add('hidden');
+      numEl.textContent = i;
+    }
+  }
+}
+
+// Lona CSV upload handling
+let lonaCSVFile = null;
+
+function handleLonaCSVDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(file && file.name.endsWith('.csv')) { lonaCSVFile = file; previewLonaCSV(file); }
+  else showToast('Please upload a .csv file', 'error');
+}
+function handleLonaCSVSelect(e) {
+  const file = e.target.files[0];
+  if(file) { lonaCSVFile = file; previewLonaCSV(file); }
+}
+
+function previewLonaCSV(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const rows = parseCSVText(e.target.result);
+    if(rows.length < 2) { showToast('CSV appears empty','error'); return; }
+    const headers = rows[0];
+    const dataRows = rows.slice(1, 6);
+    let html = `<div class="card mt-12"><div class="card-header">Preview: ${escHtml(file.name)} — ${rows.length - 1} rows</div>`;
+    html += `<div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">Detected columns: ${headers.join(', ')}</div>`;
+    html += '<table class="data-table"><thead><tr>' + headers.map(h => `<th>${escHtml(h)}</th>`).join('') + '</tr></thead><tbody>';
+    dataRows.forEach(row => {
+      html += '<tr>' + row.map(c => `<td>${escHtml(c)}</td>`).join('') + '</tr>';
+    });
+    html += '</tbody></table></div>';
+    document.getElementById('lona-csv-preview').innerHTML = html;
+    document.getElementById('lona-upload-btn').classList.remove('hidden');
+  };
+  reader.readAsText(file);
+}
+
+async function uploadToLona() {
+  if(!requireLonaKey()) return;
+  const file = lonaCSVFile || window._lonaCSVFile;
+  if(!file) { showToast('No CSV file loaded','error'); return; }
+
+  document.getElementById('lona-upload-loading').classList.remove('hidden');
+  document.getElementById('lona-upload-btn').disabled = true;
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const dateName = new Date().toISOString().split('T')[0];
+    formData.append('name', file.name.replace('.csv','') + '_' + dateName);
+    formData.append('asset_class', 'futures');
+    formData.append('frequency', '1h');
+    formData.append('timezone', 'US/Eastern');
+
+    const res = await lonaFetch('/api/data/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    lonaState.symbolId = data.symbol_id || data.id || data.data_id;
+    document.getElementById('lona-upload-status').innerHTML =
+      `<div style="color:var(--green);font-weight:600;margin-top:8px">✅ Data uploaded — Symbol ID: ${lonaState.symbolId}</div>`;
+    showToast('Data uploaded to Lona!');
+    setTimeout(() => setLonaStep(2), 1000);
+  } catch(e) {
+    showToast(e.message, 'error');
+    document.getElementById('lona-upload-status').innerHTML =
+      `<div style="color:var(--red);margin-top:8px">❌ ${escHtml(e.message)}</div>`;
+  }
+  document.getElementById('lona-upload-loading').classList.add('hidden');
+  document.getElementById('lona-upload-btn').disabled = false;
+}
+
+async function buildLonaStrategy() {
+  if(!requireLonaKey()) return;
+  const desc = document.getElementById('lona-strategy-desc').value.trim();
+  const name = document.getElementById('lona-strategy-name').value.trim() || 'SCI ICC Strategy v1';
+  if(!desc) { showToast('Describe your strategy first','error'); return; }
+
+  document.getElementById('lona-build-loading').classList.remove('hidden');
+  document.getElementById('lona-build-status').innerHTML =
+    '<div class="loading-dots" style="margin-top:8px"><span></span><span></span><span></span> Lona is building your strategy...</div>';
+
+  try {
+    const res = await lonaFetch('/api/strategies/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: desc, name: name })
+    });
+    const data = await res.json();
+    const jobId = data.job_id || data.id || data.jobId;
+
+    if(jobId) {
+      // Poll for completion
+      let attempts = 0;
+      const maxAttempts = 30; // 5 min max
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        try {
+          const pollRes = await lonaFetch('/api/strategies/generate/' + jobId);
+          const pollData = await pollRes.json();
+          if(pollData.status === 'COMPLETED' || pollData.strategy_id) {
+            clearInterval(pollInterval);
+            lonaState.strategyId = pollData.strategy_id || pollData.id;
+            document.getElementById('lona-build-status').innerHTML =
+              `<div style="color:var(--green);font-weight:600;margin-top:8px">✅ Strategy built! ID: ${lonaState.strategyId}</div>
+               <div style="font-size:13px;color:var(--text-dim);margin-top:4px">${escHtml(pollData.name || name)}</div>`;
+            document.getElementById('lona-build-loading').classList.add('hidden');
+            showToast('Strategy built in Lona!');
+            setTimeout(() => setLonaStep(3), 1000);
+          } else if(pollData.status === 'FAILED') {
+            clearInterval(pollInterval);
+            throw new Error('Strategy build failed: ' + (pollData.error || 'Unknown error'));
+          }
+          if(attempts >= maxAttempts) {
+            clearInterval(pollInterval);
+            throw new Error('Strategy build timed out after 5 minutes');
+          }
+        } catch(e) {
+          clearInterval(pollInterval);
+          document.getElementById('lona-build-status').innerHTML =
+            `<div style="color:var(--red);margin-top:8px">❌ ${escHtml(e.message)}</div>`;
+          document.getElementById('lona-build-loading').classList.add('hidden');
+          showToast(e.message, 'error');
+        }
+      }, 10000);
+    } else {
+      // Direct response (no polling needed)
+      lonaState.strategyId = data.strategy_id || data.id;
+      document.getElementById('lona-build-status').innerHTML =
+        `<div style="color:var(--green);font-weight:600;margin-top:8px">✅ Strategy built! ID: ${lonaState.strategyId}</div>`;
+      document.getElementById('lona-build-loading').classList.add('hidden');
+      showToast('Strategy built in Lona!');
+      setTimeout(() => setLonaStep(3), 1000);
+    }
+  } catch(e) {
+    showToast(e.message, 'error');
+    document.getElementById('lona-build-status').innerHTML =
+      `<div style="color:var(--red);margin-top:8px">❌ ${escHtml(e.message)}</div>`;
+    document.getElementById('lona-build-loading').classList.add('hidden');
+  }
+}
+
+async function runLonaBacktest() {
+  if(!requireLonaKey()) return;
+  if(!lonaState.symbolId || !lonaState.strategyId) {
+    showToast('Complete Steps 1 and 2 first','error');
+    return;
+  }
+
+  const capital = parseFloat(document.getElementById('lona-capital').value) || 10000;
+  const startDate = document.getElementById('lona-start-date').value;
+  const endDate = document.getElementById('lona-end-date').value;
+
+  document.getElementById('lona-backtest-loading').classList.remove('hidden');
+  document.getElementById('lona-backtest-status').innerHTML =
+    '<div class="loading-dots" style="margin-top:8px"><span></span><span></span><span></span> Running backtest — this takes 1-3 minutes...</div>';
+
+  try {
+    const res = await lonaFetch('/api/backtests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        strategy_id: lonaState.strategyId,
+        data_ids: [lonaState.symbolId],
+        start_date: startDate,
+        end_date: endDate,
+        initial_cash: capital,
+        commission: 0.001
+      })
+    });
+    const data = await res.json();
+    lonaState.reportId = data.report_id || data.id || data.reportId;
+
+    // Poll for completion
+    let attempts = 0;
+    const maxAttempts = 24; // 6 min max
+    const pollInterval = setInterval(async () => {
+      attempts++;
+      try {
+        const pollRes = await lonaFetch('/api/backtests/' + lonaState.reportId + '/status');
+        const pollData = await pollRes.json();
+        if(pollData.status === 'COMPLETED' || pollData.status === 'completed') {
+          clearInterval(pollInterval);
+          document.getElementById('lona-backtest-loading').classList.add('hidden');
+          showToast('Backtest complete!');
+          setLonaStep(4);
+          loadLonaResults();
+        } else if(pollData.status === 'FAILED' || pollData.status === 'failed') {
+          clearInterval(pollInterval);
+          throw new Error('Backtest failed: ' + (pollData.error || 'Unknown error'));
+        }
+        if(attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          throw new Error('Backtest timed out after 6 minutes');
+        }
+      } catch(e) {
+        clearInterval(pollInterval);
+        document.getElementById('lona-backtest-status').innerHTML =
+          `<div style="color:var(--red);margin-top:8px">❌ ${escHtml(e.message)}</div>`;
+        document.getElementById('lona-backtest-loading').classList.add('hidden');
+        showToast(e.message, 'error');
+      }
+    }, 15000);
+  } catch(e) {
+    showToast(e.message, 'error');
+    document.getElementById('lona-backtest-status').innerHTML =
+      `<div style="color:var(--red);margin-top:8px">❌ ${escHtml(e.message)}</div>`;
+    document.getElementById('lona-backtest-loading').classList.add('hidden');
+  }
+}
+
+async function loadLonaResults() {
+  const container = document.getElementById('lona-results-display');
+  container.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span> Loading results...</div>';
+
+  try {
+    const res = await lonaFetch('/api/backtests/' + lonaState.reportId + '/full');
+    const data = await res.json();
+
+    const metrics = data.metrics || data.summary || data;
+    const totalReturn = metrics.total_return || metrics.totalReturn || 0;
+    const winRate = metrics.win_rate || metrics.winRate || 0;
+    const totalTrades = metrics.total_trades || metrics.totalTrades || 0;
+    const avgRR = metrics.avg_rr || metrics.averageRR || metrics.avg_risk_reward || 0;
+    const maxDD = metrics.max_drawdown || metrics.maxDrawdown || 0;
+    const sharpe = metrics.sharpe_ratio || metrics.sharpeRatio || 0;
+
+    const wrColor = winRate > 50 ? 'var(--green)' : winRate >= 40 ? 'var(--yellow)' : 'var(--red)';
+    const rrColor = avgRR > 3 ? 'var(--green)' : avgRR >= 2 ? 'var(--yellow)' : 'var(--red)';
+    const ddColor = Math.abs(maxDD) < 10 ? 'var(--green)' : Math.abs(maxDD) <= 20 ? 'var(--yellow)' : 'var(--red)';
+
+    let html = `<div class="lona-metrics-grid">
+      <div class="metric-card"><div class="metric-value" style="color:${totalReturn>=0?'var(--green)':'var(--red)'}">${totalReturn>=0?'+':''}${Number(totalReturn).toFixed(2)}%</div><div class="metric-label">Total Return</div></div>
+      <div class="metric-card"><div class="metric-value" style="color:${wrColor}">${Number(winRate).toFixed(1)}%</div><div class="metric-label">Win Rate</div></div>
+      <div class="metric-card"><div class="metric-value">${totalTrades}</div><div class="metric-label">Total Trades</div></div>
+      <div class="metric-card"><div class="metric-value" style="color:${rrColor}">${Number(avgRR).toFixed(2)}</div><div class="metric-label">Average R/R</div></div>
+      <div class="metric-card"><div class="metric-value" style="color:${ddColor}">${Number(maxDD).toFixed(2)}%</div><div class="metric-label">Max Drawdown</div></div>
+      <div class="metric-card"><div class="metric-value">${Number(sharpe).toFixed(2)}</div><div class="metric-label">Sharpe Ratio</div></div>
+    </div>`;
+
+    // Trade history table
+    const trades = data.trades || data.trade_history || [];
+    if(trades.length) {
+      const showAll = trades.length <= 20;
+      const displayTrades = showAll ? trades : trades.slice(-20);
+      html += `<div class="card mt-12"><div class="card-header">Trade History${!showAll ? ` (last 20 of ${trades.length})` : ''}</div>`;
+      html += '<table class="data-table"><thead><tr><th>Date</th><th>Direction</th><th>Entry</th><th>Exit</th><th>P&L</th><th>Result</th></tr></thead><tbody>';
+      displayTrades.forEach(t => {
+        const pnl = t.pnl || t['p&l'] || t.profit || 0;
+        const result = pnl > 0 ? 'WIN' : pnl < 0 ? 'LOSS' : 'BE';
+        html += `<tr>
+          <td>${escHtml(t.date || t.entry_date || '')}</td>
+          <td>${escHtml(t.direction || t.side || t.type || '')}</td>
+          <td>${t.entry_price || t.entry || ''}</td>
+          <td>${t.exit_price || t.exit || ''}</td>
+          <td style="color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}${Number(pnl).toFixed(2)}</td>
+          <td><span class="badge ${result==='WIN'?'badge-green':result==='LOSS'?'badge-red':'badge-yellow'}">${result}</span></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      if(!showAll) html += `<button class="btn btn-sm mt-8" onclick="this.parentElement.querySelector('tbody').innerHTML='';loadAllLonaTrades(this)">Show all ${trades.length} trades</button>`;
+      html += '</div>';
+    }
+
+    // SCI Verdict via AI
+    html += `<div class="card mt-12" style="border:1px solid var(--amber)"><div class="card-header" style="color:var(--amber)">SCI Verdict</div>
+      <div id="lona-ai-verdict"><div class="loading-dots"><span></span><span></span><span></span> AI analyzing results...</div></div></div>`;
+
+    // Action buttons
+    html += `<div class="btn-group mt-12">
+      <button class="btn btn-amber" onclick="saveLonaResultsToJournal()">💾 Save Results to Journal</button>
+      <button class="btn" onclick="setLonaStep(2)">🔄 Adjust & Retest</button>
+      <button class="btn" onclick="setLonaStep(1)">📊 Run on Different Data</button>
+    </div>`;
+
+    container.innerHTML = html;
+
+    // Get AI verdict
+    try {
+      const verdictPrompt = `These are backtest results for an SCI ICC strategy:
+Total Return: ${totalReturn}%, Win Rate: ${winRate}%, Total Trades: ${totalTrades}, Average R/R: ${avgRR}, Max Drawdown: ${maxDD}%, Sharpe Ratio: ${sharpe}.
+Using the Trades by SCI methodology, tell me: 1) Is this a viable strategy? 2) What do these numbers say about the ICC entry method specifically? 3) What should I adjust to improve win rate? Be direct and specific.`;
+      const aiResult = await callAI(verdictPrompt);
+      document.getElementById('lona-ai-verdict').innerHTML = renderDualResult(aiResult);
+    } catch(e) {
+      document.getElementById('lona-ai-verdict').innerHTML = `<div style="color:var(--red)">AI analysis failed: ${escHtml(e.message)}</div>`;
+    }
+
+    // Store results for journal saving
+    window._lonaLastResults = { totalReturn, winRate, totalTrades, avgRR, maxDD, sharpe };
+
+  } catch(e) {
+    container.innerHTML = `<div style="color:var(--red);padding:16px">❌ ${escHtml(e.message)}</div>`;
+    showToast(e.message, 'error');
+  }
+}
+
+function saveLonaResultsToJournal() {
+  const r = window._lonaLastResults;
+  if(!r) { showToast('No results to save','error'); return; }
+  const briefs = JSON.parse(localStorage.getItem('sci_daily_briefs') || '[]');
+  const date = new Date().toLocaleDateString('en-US', {timeZone:'America/New_York'});
+  briefs.unshift({
+    date,
+    text: `LONA BACKTEST RESULTS\nTotal Return: ${r.totalReturn}%\nWin Rate: ${r.winRate}%\nTotal Trades: ${r.totalTrades}\nAvg R/R: ${r.avgRR}\nMax Drawdown: ${r.maxDD}%\nSharpe: ${r.sharpe}`,
+    savedAt: new Date().toISOString()
+  });
+  localStorage.setItem('sci_daily_briefs', JSON.stringify(briefs));
+  showToast('Backtest results saved to journal!');
 }
 
 // ─────────────────────────────────────────────
-// PAGE 5: TRADE JOURNAL — FIX 2: dual AI review, FIX 4: column names
+// PAGE 5: TRADE JOURNAL
 // ─────────────────────────────────────────────
 let journalSort = { field:'date', asc:false };
 
@@ -2783,7 +3322,7 @@ function updateFilterDropdowns(trades) {
 }
 
 // ─────────────────────────────────────────────
-// JOURNAL STATS & CHARTS — FIX 5F: Total R color
+// JOURNAL STATS & CHARTS
 // ─────────────────────────────────────────────
 let chartInstances = {};
 
@@ -2936,7 +3475,7 @@ function exportJSON() {
 }
 
 // ─────────────────────────────────────────────
-// PAGE 6: RISK CALCULATOR — FIX 5C: presets
+// PAGE 6: RISK CALCULATOR
 // ─────────────────────────────────────────────
 function setRiskPct(val) {
   document.querySelectorAll('#page-5 .btn-group .btn').forEach(b => b.className = 'btn');
@@ -3014,7 +3553,6 @@ function calcRisk() {
   }
 }
 
-// FIX 5C: Risk Presets
 function applyRiskPreset(preset) {
   const instField = document.getElementById('risk-instrument');
   if(preset === 'NASDAQ') {
@@ -3043,7 +3581,7 @@ function riskToJournal() {
 }
 
 // ─────────────────────────────────────────────
-// PAGE 7: SCI PLAYBOOK — FIX 5E: Quick Reference in HTML
+// PAGE 7: SCI PLAYBOOK
 // ─────────────────────────────────────────────
 const playbookSections = [
   {
@@ -3220,7 +3758,7 @@ function approvePlaybookRule(text) {
 }
 
 // ─────────────────────────────────────────────
-// PAGE 8: SETTINGS — FIX 2: dual toggles, FIX 5D: AI status
+// PAGE 8: SETTINGS — with Lona API key (CHANGE 1)
 // ─────────────────────────────────────────────
 function toggleAIEngine(engine) {
   if(engine === 'claude') {
@@ -3249,6 +3787,7 @@ function updateAIToggles() {
 function updateAIStatus() {
   const claudeKey = localStorage.getItem('sci_anthropic_key');
   const openaiKey = localStorage.getItem('sci_openai_key');
+  const lonaKey = localStorage.getItem('sci_lona_key');
   const claudeOn = isClaudeEnabled();
   const openaiOn = isOpenAIEnabled();
 
@@ -3263,6 +3802,10 @@ function updateAIStatus() {
     ? '🤖 GPT-4o: <span style="color:var(--green);font-weight:700">Connected</span>'
     : `🤖 GPT-4o: <span style="color:var(--red)">${!openaiOn ? 'Disabled' : 'No key set'}</span>`;
 
+  document.getElementById('ai-status-lona').innerHTML = lonaKey
+    ? '📊 Lona: <span style="color:var(--green);font-weight:700">Connected</span>'
+    : '📊 Lona: <span style="color:var(--red)">No key set</span>';
+
   if(claudeConnected && openaiConnected) {
     document.getElementById('ai-status-dual').innerHTML = '<span style="color:var(--amber);font-weight:700">Dual AI: Active</span>';
   } else if(claudeConnected) {
@@ -3272,11 +3815,14 @@ function updateAIStatus() {
   } else {
     document.getElementById('ai-status-dual').innerHTML = '<span style="color:var(--red)">No AI configured</span>';
   }
+
+  updateAPIStatusPills();
 }
 
 function loadSettings() {
   document.getElementById('set-anthropic-key').value = localStorage.getItem('sci_anthropic_key') || '';
   document.getElementById('set-openai-key').value = localStorage.getItem('sci_openai_key') || '';
+  document.getElementById('set-lona-key').value = localStorage.getItem('sci_lona_key') || '';
   updateAIToggles();
   document.getElementById('set-system-prompt').value = localStorage.getItem('sci_system_prompt') || DEFAULT_SYSTEM_PROMPT;
 
@@ -3293,6 +3839,7 @@ function loadSettings() {
 function saveSettings() {
   localStorage.setItem('sci_anthropic_key', document.getElementById('set-anthropic-key').value);
   localStorage.setItem('sci_openai_key', document.getElementById('set-openai-key').value);
+  localStorage.setItem('sci_lona_key', document.getElementById('set-lona-key').value);
   localStorage.setItem('sci_system_prompt', document.getElementById('set-system-prompt').value);
 
   const settings = {
@@ -3306,9 +3853,9 @@ function saveSettings() {
   showToast('Settings saved!');
 }
 
-// Auto-save API keys on change
 document.getElementById('set-anthropic-key').addEventListener('change', () => { saveSettings(); updateAIStatus(); });
 document.getElementById('set-openai-key').addEventListener('change', () => { saveSettings(); updateAIStatus(); });
+document.getElementById('set-lona-key').addEventListener('change', () => { saveSettings(); updateAIStatus(); });
 document.getElementById('set-system-prompt').addEventListener('change', saveSettings);
 
 function resetSystemPrompt() {
@@ -3332,12 +3879,25 @@ async function testAI(engine) {
       const reply = await callClaudeRaw('Say OK', null, 'You are a test assistant.');
       showToast('Claude Connected: ' + reply.substring(0, 50));
       updateAIStatus();
-    } else {
+    } else if(engine === 'openai') {
       const key = document.getElementById('set-openai-key').value;
       if(!key) { showToast('Enter OpenAI key first','error'); return; }
       localStorage.setItem('sci_openai_key', key);
       const reply = await callOpenAIRaw('Say OK', null, 'You are a test assistant.');
       showToast('GPT-4o Connected: ' + reply.substring(0, 50));
+      updateAIStatus();
+    } else if(engine === 'lona') {
+      const key = document.getElementById('set-lona-key').value;
+      if(!key) { showToast('Enter Lona key first','error'); return; }
+      localStorage.setItem('sci_lona_key', key);
+      try {
+        await lonaFetch('/api/strategies?limit=1');
+        showToast('Lona Connected — backtesting ready!');
+        document.getElementById('lona-test-status').innerHTML = '<span style="color:var(--green)">✅ Lona Connected — backtesting ready</span>';
+      } catch(e) {
+        showToast('Connection failed — check your key', 'error');
+        document.getElementById('lona-test-status').innerHTML = '<span style="color:var(--red)">❌ Connection failed — check your key</span>';
+      }
       updateAIStatus();
     }
   } catch(e) {
@@ -3456,6 +4016,22 @@ function init() {
   const settings = JSON.parse(localStorage.getItem('sci_settings') || '{}');
   if(!riskInputs.account && settings.account) {
     document.getElementById('risk-account').value = settings.account;
+  }
+
+  // Init Lona stepper
+  setLonaStep(1);
+
+  // Set default Lona dates
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+  document.getElementById('lona-start-date').value = oneYearAgo.toISOString().split('T')[0];
+  document.getElementById('lona-end-date').value = new Date().toISOString().split('T')[0];
+
+  // If CSV was sent from Analyze Trade page
+  if(window._lonaCSVFile && window._lonaCSVSkipUpload) {
+    lonaCSVFile = window._lonaCSVFile;
+    previewLonaCSV(lonaCSVFile);
+    window._lonaCSVSkipUpload = false;
   }
 }
 
