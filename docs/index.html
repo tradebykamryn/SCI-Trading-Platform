@@ -2294,7 +2294,7 @@ async function sendChat() {
 let scannerData = JSON.parse(localStorage.getItem('sci_scanner') || '[]');
 
 function renderScanner() {
-  const tbody = document.getElementById('scanner-tbody');
+  const tbody = document.getElementById('scan-table');
   tbody.innerHTML = scannerData.map((row, i) => `<tr>
     <td>${row.instrument||''}</td><td>${row.trend||''}</td><td>${row.icc||''}</td>
     <td>${row.session||''}</td><td>${row.notes||''}</td>
@@ -2302,14 +2302,15 @@ function renderScanner() {
   </tr>`).join('');
 }
 
+const runFullScan = () => aiScan();
 async function aiScan() {
-  const loading = document.getElementById('scanner-loading');
+  const loading = document.getElementById('scan-loading');
   loading.classList.remove('hidden');
   const instList = instruments.map(i => `${i.name}: Trend=${i.trend||'Unknown'}, ICC=${i.icc||'Unknown'}, Active=${i.active}`).join('\n');
   const prompt = `Analyze these instruments for today's trading session using SCI methodology. For each, provide: Trend (Bull/Bear/Range), ICC Phase, Session recommendation, and brief notes.\n\n${instList}`;
   const results = await callAI(prompt);
   loading.classList.add('hidden');
-  renderDualResult(results, 'scanner-ai-result');
+  renderDualResult(results, 'scan-result');
 }
 
 async function generateBrief() {
@@ -2357,18 +2358,31 @@ Use SCI methodology. Be specific about price levels. Be direct.`;
   localStorage.setItem('sci_daily_briefs', JSON.stringify(briefs.slice(0, 30)));
 }
 
-function uploadScannerChart() {
-  const file = document.getElementById('scanner-chart-upload').files[0];
+let patternImage = null;
+
+function handlePatternFile(input) {
+  const file = input.files ? input.files[0] : input;
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = async (e) => {
-    const base64 = e.target.result.split(',')[1];
-    document.getElementById('scanner-loading').classList.remove('hidden');
-    const results = await callAI('Analyze this chart using SCI methodology. Identify: instrument, trend, ICC phase, key levels, and any setups. Be specific.', base64);
-    document.getElementById('scanner-loading').classList.add('hidden');
-    renderDualResult(results, 'scanner-ai-result');
+  reader.onload = (e) => {
+    patternImage = e.target.result.split(',')[1];
+    const zone = document.getElementById('pattern-drop');
+    zone.innerHTML = `<img src="${e.target.result}" style="max-width:100%;border-radius:8px"><br><span style="font-size:12px;color:var(--green)">Screenshot loaded — click Identify Pattern</span>`;
   };
   reader.readAsDataURL(file);
+}
+
+async function identifyPattern() {
+  const instrument = document.getElementById('pattern-instrument').value;
+  const notes = document.getElementById('pattern-notes').value;
+  if (!patternImage && !notes) { toast('Upload a screenshot or describe what you see', 'error'); return; }
+  const loading = document.getElementById('pattern-loading');
+  loading.classList.remove('hidden');
+  document.getElementById('pattern-result').innerHTML = '';
+  const prompt = `Identify the chart pattern for ${instrument || 'this instrument'} using SCI methodology.\n${notes ? 'Trader notes: ' + notes : ''}\nIdentify: pattern type, trend direction, ICC phase, key levels, and whether this is a valid setup. Be specific and direct.`;
+  const results = await callAI(prompt, patternImage || null);
+  loading.classList.add('hidden');
+  renderDualResult(results, 'pattern-result');
 }
 
 // ─────────────────────────────────────────────
@@ -2377,24 +2391,57 @@ function uploadScannerChart() {
 let analyzeImage = null;
 
 function setupAnalyzeDrop() {
-  const zone = document.getElementById('analyze-drop-zone');
-  const fileInput = document.getElementById('analyze-file-input');
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--amber)'; });
-  zone.addEventListener('dragleave', () => { zone.style.borderColor = 'var(--border)'; });
+  const zone = document.getElementById('analyze-drop');
+  const fileInput = document.getElementById('analyze-file');
+  if (!zone || !fileInput) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => { zone.classList.remove('dragover'); });
   zone.addEventListener('drop', e => {
-    e.preventDefault(); zone.style.borderColor = 'var(--border)';
-    handleAnalyzeFile(e.dataTransfer.files[0]);
+    e.preventDefault(); zone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleAnalyzeFile(e.dataTransfer.files[0]);
   });
-  zone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleAnalyzeFile(fileInput.files[0]); });
+  // Also setup drag-and-drop for pattern zone
+  const patternZone = document.getElementById('pattern-drop');
+  if (patternZone) {
+    patternZone.addEventListener('dragover', e => { e.preventDefault(); patternZone.classList.add('dragover'); });
+    patternZone.addEventListener('dragleave', () => { patternZone.classList.remove('dragover'); });
+    patternZone.addEventListener('drop', e => {
+      e.preventDefault(); patternZone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) handlePatternFile({ files: [e.dataTransfer.files[0]] });
+    });
+  }
+  // Setup drag-and-drop for CSV zone
+  const csvZone = document.getElementById('csv-drop');
+  if (csvZone) {
+    csvZone.addEventListener('dragover', e => { e.preventDefault(); csvZone.classList.add('dragover'); });
+    csvZone.addEventListener('dragleave', () => { csvZone.classList.remove('dragover'); });
+    csvZone.addEventListener('drop', e => {
+      e.preventDefault(); csvZone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) handleCSVFile({ files: [e.dataTransfer.files[0]] });
+    });
+  }
+  // Setup drag-and-drop for Lona zone
+  const lonaZone = document.getElementById('lona-drop');
+  if (lonaZone) {
+    lonaZone.addEventListener('dragover', e => { e.preventDefault(); lonaZone.classList.add('dragover'); });
+    lonaZone.addEventListener('dragleave', () => { lonaZone.classList.remove('dragover'); });
+    lonaZone.addEventListener('drop', e => {
+      e.preventDefault(); lonaZone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) handleLonaFile({ files: [e.dataTransfer.files[0]] });
+    });
+  }
 }
 
-function handleAnalyzeFile(file) {
+function handleAnalyzeFile(input) {
+  const file = input instanceof File ? input : (input.files ? input.files[0] : null);
   if (!file || !file.type.startsWith('image/')) return;
   const reader = new FileReader();
   reader.onload = (e) => {
     analyzeImage = e.target.result.split(',')[1];
-    document.getElementById('analyze-preview').innerHTML = `<img src="${e.target.result}" style="max-width:100%;border-radius:8px;margin-top:12px">`;
+    const preview = document.getElementById('analyze-preview');
+    preview.classList.remove('hidden');
+    preview.innerHTML = `<img src="${e.target.result}" style="max-width:100%;border-radius:8px;margin-top:12px">`;
+    document.getElementById('analyze-drop').innerHTML = `<img src="${e.target.result}" style="max-width:100%;border-radius:8px"><br><span style="font-size:12px;color:var(--green)">Screenshot loaded \u2014 click Analyze with AI</span>`;
   };
   reader.readAsDataURL(file);
 }
@@ -2434,15 +2481,22 @@ function switchAnalyzeTab(n) {
   }
 }
 
+function setManualBtn(el, hiddenId, groupClass) {
+  // Remove active from sibling buttons
+  el.parentElement.querySelectorAll('.btn').forEach(b => { b.style.background = ''; b.style.borderColor = ''; });
+  el.style.background = 'var(--amber)'; el.style.borderColor = 'var(--amber)';
+  document.getElementById(hiddenId).value = el.getAttribute('data-val');
+}
+
 async function analyzeManual() {
-  const inst = document.getElementById('m-instrument').value;
-  const tf = document.getElementById('m-timeframe').value;
-  const trend = document.getElementById('m-trend').value;
-  const icc = document.getElementById('m-icc').value;
-  const entry = document.getElementById('m-entry').value;
-  const stop = document.getElementById('m-stop').value;
-  const target = document.getElementById('m-target').value;
-  const notes = document.getElementById('m-notes').value;
+  const inst = document.getElementById('manual-instrument').value;
+  const tf = document.getElementById('manual-tf').value;
+  const trend = document.getElementById('manual-trend').value;
+  const icc = document.getElementById('manual-icc').value;
+  const entry = document.getElementById('manual-entry').value;
+  const stop = document.getElementById('manual-stop').value;
+  const target = document.getElementById('manual-tp1').value;
+  const notes = document.getElementById('manual-notes').value;
   const loading = document.getElementById('analyze-loading');
   loading.classList.remove('hidden');
   document.getElementById('analyze-result').innerHTML = '';
@@ -2460,8 +2514,8 @@ Return analysis in the standard SCI format with SETUP VALIDITY, ICC PHASE, TEAM 
 }
 
 // CSV Import
-function handleCSVImport() {
-  const file = document.getElementById('csv-file-input').files[0];
+function handleCSVFile(input) {
+  const file = input.files ? input.files[0] : input;
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -2482,12 +2536,15 @@ function handleCSVImport() {
     html += `<p style="font-size:12px;color:var(--text-muted);margin-top:8px">${rows.length} rows loaded</p>`;
     html += `<div class="btn-group mt-12"><button class="btn btn-amber" onclick="analyzeCSVData()">Analyze with AI →</button>`;
     html += `<button class="btn" onclick="sendCSVToLona()">Send to Lona for Backtest →</button></div>`;
-    document.getElementById('csv-preview').innerHTML = html;
+    const csvPreview = document.getElementById('csv-preview');
+    csvPreview.classList.remove('hidden');
+    csvPreview.innerHTML = html;
     window._csvData = rows;
   };
   reader.readAsText(file);
 }
 
+function analyzeCSV() { analyzeCSVData(); }
 async function analyzeCSVData() {
   if (!window._csvData) return;
   const loading = document.getElementById('analyze-loading');
@@ -2516,27 +2573,27 @@ const strategyTypes = [
 ];
 
 function renderStrategyTypes() {
-  const grid = document.getElementById('strategy-types-grid');
-  grid.innerHTML = strategyTypes.map((s, i) => `
-    <div class="strategy-type-card ${s.featured ? 'featured' : ''}" onclick="selectStrategy('${s.name}')">
-      ${s.featured ? '<div class="core-badge">CORE STRATEGY</div>' : ''}
-      <div class="strategy-type-name">${s.name}</div>
-      <div class="strategy-type-desc">${s.desc}</div>
-      <div class="strategy-type-when"><strong>When to use:</strong> ${s.when}</div>
-    </div>
-  `).join('');
+  // Strategy types are hardcoded in HTML, no dynamic rendering needed
 }
 
-function selectStrategy(name) {
-  document.getElementById('strat-type').value = name;
+function selectStrategyType(el, name) {
+  // Remove active from all cards
+  document.querySelectorAll('.strategy-type-card').forEach(c => c.style.borderColor = '');
+  el.style.borderColor = 'var(--amber)';
+  // Show the strategy form
+  const form = document.getElementById('strategy-form');
+  if (form) form.classList.remove('hidden');
+  document.getElementById('strat-name').value = name;
   toast(`Strategy selected: ${name}`, 'success');
 }
+function selectStrategy(name) { selectStrategyType(null, name); }
 
 let savedStrategies = JSON.parse(localStorage.getItem('sci_strategies') || '[]');
 
 function renderSavedStrategies() {
-  const list = document.getElementById('saved-strategies-list');
-  if (savedStrategies.length === 0) { list.innerHTML = '<p style="color:var(--text-muted)">No saved strategies yet.</p>'; return; }
+  const list = document.getElementById('saved-strategies');
+  if (!list) return;
+  if (savedStrategies.length === 0) { list.innerHTML = '<p style="color:var(--text-muted)">No saved strategies yet. Build one above!</p>'; return; }
   list.innerHTML = savedStrategies.map((s, i) => `
     <div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -2550,15 +2607,29 @@ function renderSavedStrategies() {
 
 function saveStrategy() {
   const name = document.getElementById('strat-name').value.trim();
-  const type = document.getElementById('strat-type').value;
-  const rules = document.getElementById('strat-rules').value.trim();
+  const entry = document.getElementById('strat-entry').value.trim();
+  const exit = document.getElementById('strat-exit').value.trim();
+  const risk = document.getElementById('strat-risk').value.trim();
+  const notes = document.getElementById('strat-notes').value.trim();
+  const instrument = document.getElementById('strat-instrument').value.trim();
   if (!name) { toast('Enter a strategy name', 'error'); return; }
-  savedStrategies.push({ name, type, rules, created: new Date().toISOString() });
+  savedStrategies.push({ name, type: name, rules: `Entry: ${entry}\nExit: ${exit}\nRisk: ${risk}\nNotes: ${notes}`, instrument, created: new Date().toISOString() });
   localStorage.setItem('sci_strategies', JSON.stringify(savedStrategies));
   renderSavedStrategies();
-  document.getElementById('strat-name').value = '';
-  document.getElementById('strat-rules').value = '';
   toast('Strategy saved!', 'success');
+}
+
+async function generateStrategyAI() {
+  const name = document.getElementById('strat-name').value.trim();
+  const entry = document.getElementById('strat-entry').value.trim();
+  const exit = document.getElementById('strat-exit').value.trim();
+  const instrument = document.getElementById('strat-instrument').value.trim();
+  const loading = document.getElementById('strat-loading');
+  loading.classList.remove('hidden');
+  const prompt = `Generate a complete SCI trading strategy for ${instrument || 'any instrument'} based on: ${name || 'ICC method'}.\nEntry rules: ${entry || 'Not specified'}\nExit rules: ${exit || 'Not specified'}\nProvide detailed entry criteria, stop loss placement, target selection, and risk management rules using SCI methodology.`;
+  const results = await callAI(prompt);
+  loading.classList.add('hidden');
+  renderDualResult(results, 'strat-ai-result');
 }
 
 // ─────────────────────────────────────────────
@@ -2566,14 +2637,34 @@ function saveStrategy() {
 // ─────────────────────────────────────────────
 let lonaState = { step: 0, datasetId: null, strategyId: null, backtestId: null, results: null };
 
+function lonaNext(step) {
+  // Navigate to the next step in the Lona stepper
+  for (let i = 1; i <= 4; i++) {
+    const panel = document.getElementById('lona-panel-' + i);
+    const stepEl = document.getElementById('lona-step-' + i);
+    if (panel) panel.classList.toggle('hidden', i !== step);
+    if (stepEl) stepEl.classList.toggle('active', i <= step);
+  }
+}
+
+function handleLonaFile(input) {
+  const file = input.files ? input.files[0] : input;
+  if (!file) return;
+  // Store the file for lonaUpload to use
+  window._lonaFile = file;
+  const zone = document.getElementById('lona-drop');
+  zone.innerHTML = `<span style="color:var(--green)">📊 ${file.name} (${(file.size/1024).toFixed(1)} KB) — ready to upload</span>`;
+  toast('CSV file loaded — click Upload to Lona', 'success');
+}
+
 async function lonaUpload() {
-  const fileInput = document.getElementById('lona-csv-input');
-  const file = fileInput?.files[0];
+  const fileInput = document.getElementById('lona-file');
+  const file = window._lonaFile || (fileInput?.files ? fileInput.files[0] : null);
   if (!file) { toast('Select a CSV file first', 'error'); return; }
   const lonaKey = document.getElementById('lona-key').value;
   const lonaUrl = document.getElementById('lona-url').value || 'https://api.lona.agency/v1';
   if (!lonaKey) { toast('Add Lona API key in Settings first', 'error'); goPage(7); return; }
-  document.getElementById('lona-step-loading').classList.remove('hidden');
+  document.getElementById('lona-build-loading').classList.remove('hidden');
   try {
     const formData = new FormData();
     formData.append('file', file);
@@ -2585,7 +2676,7 @@ async function lonaUpload() {
     if (data.id) { lonaState.datasetId = data.id; lonaState.step = 1; updateLonaUI(); toast('Data uploaded to Lona!', 'success'); }
     else throw new Error(data.error || 'Upload failed');
   } catch(e) { toast('Lona upload error: ' + e.message, 'error'); }
-  document.getElementById('lona-step-loading').classList.add('hidden');
+  document.getElementById('lona-build-loading').classList.add('hidden');
 }
 
 async function lonaBuildStrategy() {
@@ -2593,7 +2684,7 @@ async function lonaBuildStrategy() {
   const desc = document.getElementById('lona-strat-desc').value || 'ICC-based strategy';
   const lonaKey = document.getElementById('lona-key').value;
   const lonaUrl = document.getElementById('lona-url').value || 'https://api.lona.agency/v1';
-  document.getElementById('lona-step-loading').classList.remove('hidden');
+  document.getElementById('lona-build-loading').classList.remove('hidden');
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 60000);
@@ -2605,14 +2696,14 @@ async function lonaBuildStrategy() {
     if (data.id) { lonaState.strategyId = data.id; lonaState.step = 2; updateLonaUI(); toast('Strategy built!', 'success'); }
     else throw new Error(data.error || 'Build failed');
   } catch(e) { toast('Lona error: ' + e.message, 'error'); }
-  document.getElementById('lona-step-loading').classList.add('hidden');
+  document.getElementById('lona-build-loading').classList.add('hidden');
 }
 
 async function lonaRunBacktest() {
   const capital = document.getElementById('lona-capital').value || '10000';
   const lonaKey = document.getElementById('lona-key').value;
   const lonaUrl = document.getElementById('lona-url').value || 'https://api.lona.agency/v1';
-  document.getElementById('lona-step-loading').classList.remove('hidden');
+  document.getElementById('lona-build-loading').classList.remove('hidden');
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 60000);
@@ -2624,11 +2715,11 @@ async function lonaRunBacktest() {
     if (data.id) { lonaState.backtestId = data.id; lonaState.step = 3; updateLonaUI(); toast('Backtest complete!', 'success'); lonaState.results = data; renderLonaResults(data); }
     else throw new Error(data.error || 'Backtest failed');
   } catch(e) { toast('Lona error: ' + e.message, 'error'); }
-  document.getElementById('lona-step-loading').classList.add('hidden');
+  document.getElementById('lona-build-loading').classList.add('hidden');
 }
 
 function renderLonaResults(data) {
-  const el = document.getElementById('lona-results-content');
+  const el = document.getElementById('lona-results');
   const r = data.results || data;
   el.innerHTML = `
     <div class="grid-3 mb-12">
