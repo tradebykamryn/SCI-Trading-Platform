@@ -827,7 +827,13 @@ textarea.input { min-height: 70px; resize: vertical; }
   </div>
 
   <!-- Instrument Cards -->
-  <div class="card-header" style="font-size:16px;font-weight:600;margin-bottom:16px">📊 Instruments</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div class="card-header" style="font-size:16px;font-weight:600;margin-bottom:0">📊 Instruments</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input class="input" id="new-instrument-name" placeholder="e.g. US30, Oil, GBP/USD" style="width:180px;padding:6px 10px;font-size:12px">
+      <button class="btn btn-amber" onclick="addInstrument()" style="padding:6px 14px;font-size:12px">+ Add</button>
+    </div>
+  </div>
   <div class="grid-2 mb-20" id="instruments-grid"></div>
 
   <!-- 10-Point Checklist -->
@@ -2127,49 +2133,88 @@ let instruments = JSON.parse(localStorage.getItem('sci_instruments') || 'null') 
 
 function renderInstruments() {
   const grid = document.getElementById('instruments-grid');
+  if (!grid) return;
   grid.innerHTML = instruments.map((inst, i) => {
-    const trendClass = inst.trend === 'Bull' ? 'trend-bull' : inst.trend === 'Bear' ? 'trend-bear' : inst.trend === 'Range' ? 'trend-range' : '';
-    const iccClass = inst.icc === 'Indication' ? 'icc-indication' : inst.icc === 'Correction' ? 'icc-correction' : inst.icc === 'Continuation' ? 'icc-continuation' : 'icc-nosetup';
     const activeClass = inst.active ? ' active-setup' : '';
-    // Entry indicator based on trend
     let entryHtml = '';
     if (inst.trend === 'Bull') entryHtml = '<div class="entry-indicator entry-buy">✅ BUY from Higher Lows only</div>';
     else if (inst.trend === 'Bear') entryHtml = '<div class="entry-indicator entry-sell">✅ SELL from Lower Highs only</div>';
     else if (inst.trend === 'Range') entryHtml = '<div class="entry-indicator entry-none">⛔ NO TRADE — No trend established</div>';
-    return `<div class="inst-card${activeClass}">
-      <div class="inst-name">${inst.name}</div>
+    return `<div class="inst-card${activeClass}" data-idx="${i}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="inst-name" style="margin-bottom:0">${inst.name}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" style="padding:3px 8px;font-size:10px;border-color:var(--text-muted);color:var(--text-muted)" data-action="rename" data-idx="${i}" title="Rename">✏️</button>
+          <button class="btn" style="padding:3px 8px;font-size:10px;border-color:var(--red);color:var(--red)" data-action="remove" data-idx="${i}" title="Remove">✕</button>
+        </div>
+      </div>
       <div class="inst-section">
         <div class="inst-section-label">Trend / Bias</div>
         <div class="btn-group">
-          <button class="trend-btn ${inst.trend==='Bull'?'trend-bull':''}" onclick="setInstrument(${i},'trend','Bull',this)">▲ Bull</button>
-          <button class="trend-btn ${inst.trend==='Bear'?'trend-bear':''}" onclick="setInstrument(${i},'trend','Bear',this)">▼ Bear</button>
-          <button class="trend-btn ${inst.trend==='Range'?'trend-range':''}" onclick="setInstrument(${i},'trend','Range',this)">◆ Range</button>
+          <button class="trend-btn ${inst.trend==='Bull'?'trend-bull':''}" data-action="trend" data-idx="${i}" data-val="Bull">▲ Bull</button>
+          <button class="trend-btn ${inst.trend==='Bear'?'trend-bear':''}" data-action="trend" data-idx="${i}" data-val="Bear">▼ Bear</button>
+          <button class="trend-btn ${inst.trend==='Range'?'trend-range':''}" data-action="trend" data-idx="${i}" data-val="Range">◆ Range</button>
         </div>
       </div>
       <div class="inst-section">
         <div class="inst-section-label">ICC Phase</div>
         <div class="btn-group">
-          <button class="icc-btn ${inst.icc==='Indication'?'icc-indication':''}" onclick="setInstrument(${i},'icc','Indication',this)">Indication</button>
-          <button class="icc-btn ${inst.icc==='Correction'?'icc-correction':''}" onclick="setInstrument(${i},'icc','Correction',this)">Correction</button>
-          <button class="icc-btn ${inst.icc==='Continuation'?'icc-continuation':''}" onclick="setInstrument(${i},'icc','Continuation',this)">Continuation</button>
-          <button class="icc-btn ${inst.icc===null||inst.icc==='No Setup'?'icc-nosetup':''}" onclick="setInstrument(${i},'icc','No Setup',this)">No Setup</button>
+          <button class="icc-btn ${inst.icc==='Indication'?'icc-indication':''}" data-action="icc" data-idx="${i}" data-val="Indication">Indication</button>
+          <button class="icc-btn ${inst.icc==='Correction'?'icc-correction':''}" data-action="icc" data-idx="${i}" data-val="Correction">Correction</button>
+          <button class="icc-btn ${inst.icc==='Continuation'?'icc-continuation':''}" data-action="icc" data-idx="${i}" data-val="Continuation">Continuation</button>
+          <button class="icc-btn ${inst.icc===null||inst.icc==='No Setup'?'icc-nosetup':''}" data-action="icc" data-idx="${i}" data-val="No Setup">No Setup</button>
         </div>
       </div>
       ${entryHtml}
       <div style="margin-top:10px">
         <label style="font-size:11px;color:var(--text-muted);cursor:pointer">
-          <input type="checkbox" ${inst.active?'checked':''} onchange="toggleActive(${i},this.checked)"> Active Setup
+          <input type="checkbox" ${inst.active?'checked':''} data-action="active" data-idx="${i}"> Active Setup
         </label>
       </div>
-      ${inst.updated ? `<div class="inst-updated">Last updated: ${inst.updated}</div>` : ''}
+      ${inst.updated ? '<div class="inst-updated">Last updated: ' + inst.updated + '</div>' : ''}
     </div>`;
   }).join('');
 }
 
+// Event delegation for instrument cards — more reliable than inline onclick
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.getAttribute('data-action');
+  const idx = parseInt(btn.getAttribute('data-idx'));
+  if (isNaN(idx) || idx < 0 || idx >= instruments.length) return;
+  
+  if (action === 'trend' || action === 'icc') {
+    const val = btn.getAttribute('data-val');
+    instruments[idx][action === 'trend' ? 'trend' : 'icc'] = val;
+    instruments[idx].updated = new Date().toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' }) + ' EST';
+    if (action === 'icc' && val === 'Continuation') instruments[idx].active = true;
+    if (action === 'icc' && val === 'No Setup') instruments[idx].active = false;
+    saveInstruments();
+    renderInstruments();
+    toast(instruments[idx].name + ': ' + (action === 'trend' ? 'Trend' : 'ICC') + ' → ' + val, 'success');
+  } else if (action === 'rename') {
+    renameInstrument(idx);
+  } else if (action === 'remove') {
+    removeInstrument(idx);
+  }
+});
+
+document.addEventListener('change', function(e) {
+  if (e.target.getAttribute('data-action') === 'active') {
+    const idx = parseInt(e.target.getAttribute('data-idx'));
+    if (!isNaN(idx) && idx >= 0 && idx < instruments.length) {
+      instruments[idx].active = e.target.checked;
+      saveInstruments();
+      renderInstruments();
+    }
+  }
+});
+
+// Keep these for backward compatibility with any remaining inline calls
 function setInstrument(i, field, val, btn) {
   instruments[i][field] = val;
   instruments[i].updated = new Date().toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' }) + ' EST';
-  // Auto-set active if continuation
   if (field === 'icc' && val === 'Continuation') instruments[i].active = true;
   if (field === 'icc' && val === 'No Setup') instruments[i].active = false;
   saveInstruments();
@@ -2180,6 +2225,42 @@ function toggleActive(i, checked) {
   instruments[i].active = checked;
   saveInstruments();
   renderInstruments();
+}
+
+function addInstrument() {
+  const input = document.getElementById('new-instrument-name');
+  const name = input.value.trim();
+  if (!name) { toast('Enter an instrument name', 'error'); return; }
+  if (instruments.some(inst => inst.name.toLowerCase() === name.toLowerCase())) { toast('Instrument already exists', 'error'); return; }
+  instruments.push({ name: name, trend: null, icc: null, active: false, updated: null });
+  saveInstruments();
+  renderInstruments();
+  renderScanner();
+  input.value = '';
+  toast('Added: ' + name, 'success');
+}
+
+function removeInstrument(idx) {
+  const name = instruments[idx].name;
+  showModal('Remove ' + name + '?', 'This will remove the instrument card. You can always add it back later.', function() {
+    instruments.splice(idx, 1);
+    saveInstruments();
+    renderInstruments();
+    renderScanner();
+    toast('Removed: ' + name, 'success');
+  });
+}
+
+function renameInstrument(idx) {
+  const currentName = instruments[idx].name;
+  const newName = prompt('Rename instrument:', currentName);
+  if (newName && newName.trim() && newName.trim() !== currentName) {
+    instruments[idx].name = newName.trim();
+    saveInstruments();
+    renderInstruments();
+    renderScanner();
+    toast('Renamed to: ' + newName.trim(), 'success');
+  }
 }
 
 function saveInstruments() { localStorage.setItem('sci_instruments', JSON.stringify(instruments)); }
@@ -3142,8 +3223,8 @@ function toggleEngine(engine) {
 function updateToggleUI() {
   const claudeOn = localStorage.getItem('sci_claude_enabled') !== 'false';
   const openaiOn = localStorage.getItem('sci_openai_enabled') !== 'false';
-  document.getElementById('toggle-claude').classList.toggle('active', claudeOn);
-  document.getElementById('toggle-openai').classList.toggle('active', openaiOn);
+  document.getElementById('toggle-claude').classList.toggle('on', claudeOn);
+  document.getElementById('toggle-openai').classList.toggle('on', openaiOn);
 }
 
 function toggleKeyVis(id) {
